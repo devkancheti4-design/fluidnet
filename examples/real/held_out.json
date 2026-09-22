@@ -1,0 +1,457 @@
+[
+ {
+  "shape": "guard",
+  "repo": "arrow",
+  "sha": "1011d9bdddbe430ec5751df0a20ee1154dbaac58",
+  "file": "arrow/factory.py",
+  "subject": "Fix regression when tzinfo kwarg is a string",
+  "minus": [
+   "            if not isinstance(tz, tzinfo):"
+  ],
+  "plus": [
+   "            if not tz:"
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "click",
+  "sha": "0551bf53588ae87f462d336f24f853a156fefe3a",
+  "file": "src/click/formatting.py",
+  "subject": "Fix `HelpFormatter.write_usage` producing spurious characters",
+  "minus": [],
+  "plus": [
+   "        if not args:",
+   "            # Without args, the prefix's trailing space and the wrap_text",
+   "            # call that would normally place args on the line are both",
+   "            # unnecessary. Emit just the prefix line.",
+   "            self.write(usage_prefix.rstrip(\" \"))",
+   "            self.write(\"\\n\")",
+   "            return",
+   ""
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "click",
+  "sha": "f957fba83bf53141c3fdfda5ee4a40a5227f15ce",
+  "file": "click/_winconsole.py",
+  "subject": "fix a memory leak and missing error check in _get_windows_argv",
+  "minus": [
+   "     c_void_p, py_object, c_ssize_t, c_ulong, windll, WINFUNCTYPE",
+   "        argv = [argv_unicode[i] for i in range(0, argc.value)]"
+  ],
+  "plus": [
+   "     c_void_p, py_object, c_ssize_t, c_ulong, windll, WINFUNCTYPE, \\",
+   "     WinError",
+   "LocalFree = WINFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p)(",
+   "    ('LocalFree', windll.kernel32))",
+   "        if not argv_unicode:",
+   "            raise WinError()",
+   "        try:",
+   "            argv = [argv_unicode[i] for i in range(0, argc.value)]",
+   "        finally:",
+   "            LocalFree(argv_unicode)",
+   "            del argv_unicode"
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "click",
+  "sha": "99ef35e3b4919b5dc33d1ee4b1e04b437b6307a5",
+  "file": "click/exceptions.py",
+  "subject": "Fix for string cast of MissingParameter",
+  "minus": [],
+  "plus": [
+   "    def __str__(self):",
+   "        if self.message is None:",
+   "            param_name = self.param.name if self.param else None",
+   "            return \"missing parameter: {}\".format(param_name)",
+   "        else:",
+   "            return self.message",
+   "",
+   "    if PY2:",
+   "        __unicode__ = __str__",
+   "",
+   "        def __str__(self):",
+   "            return self.__unicode__().encode(\"utf-8\")",
+   ""
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "click",
+  "sha": "262c275d8513a377fdc741695c7ab11920fc8391",
+  "file": "click/_compat.py",
+  "subject": "Fixed broken tests and behavior on windows.",
+  "minus": [
+   "_rename = os.rename",
+   "        _rename(self._tmp_filename, self._real_filename)"
+  ],
+  "plus": [
+   "if hasattr(os, 'replace'):",
+   "    _replace = os.replace",
+   "    _can_replace = True",
+   "else:",
+   "    _replace = os.rename",
+   "    _can_replace = not WIN",
+   "        if not _can_replace:",
+   "            try:",
+   "                os.remove(self._real_filename)",
+   "            except OSError:",
+   "                pass",
+   "        _replace(self._tmp_filename, self._real_filename)"
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "click",
+  "sha": "0f20511f41e8d99acd074b063cadaa0b9f8aecf0",
+  "file": "click/utils.py",
+  "subject": "Fix bug with multiple args after star arg",
+  "minus": [
+   "            return (spos is not None and c.pop() or c.popleft())"
+  ],
+  "plus": [
+   "    >>> unpack_args(range(6), [-1,1,1,1,1])",
+   "    (((0, 1), 5, 4, 3, 2), [])",
+   "            if spos is None:",
+   "                return c.popleft()",
+   "            else:",
+   "                return c.pop()",
+   "        rv[spos + 1:] = reversed(rv[spos + 1:])"
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "click",
+  "sha": "4e2a3291613f6903afa179396676d4aebb340eb1",
+  "file": "click/formatting.py",
+  "subject": "Fixed a bug with whitespace preservation.",
+  "minus": [
+   "    indent = 0",
+   "            p.append((indent, True, '\\n'.join(buf[1:])))",
+   "            p.append((indent, False, ' '.join(buf)))",
+   "            indent = len(line) - len(line.lstrip())",
+   "            buf.append(line.lstrip())"
+  ],
+  "plus": [
+   "    indent = None",
+   "            p.append((indent or 0, True, '\\n'.join(buf[1:])))",
+   "            p.append((indent or 0, False, ' '.join(buf)))",
+   "            indent = None",
+   "            if indent is None:",
+   "                orig_len = len(line)",
+   "                line = line.lstrip()",
+   "                indent = orig_len - len(line)",
+   "            buf.append(line)"
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "python-sortedcontainers",
+  "sha": "53ab610cc4615888f3fcf2fa1d5d340440247a2a",
+  "file": "sortedcontainers/sortedlist.py",
+  "subject": "Test and bug fix for SortedList.extend with empty iterable",
+  "minus": [
+   "        if not len(_index):"
+  ],
+  "plus": [
+   "        if not _index:",
+   "        if not values:",
+   "            return",
+   ""
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "rich",
+  "sha": "a34914be5d1cc9dc298ca92e5c9af757157a0bb7",
+  "file": "rich/traceback.py",
+  "subject": "fix for null tb_offset",
+  "minus": [
+   "            tb_offset = tb_data.get(\"tb_offset\", 1 if compiled else 0)"
+  ],
+  "plus": [
+   "            tb_offset = tb_data.get(\"tb_offset\")",
+   "            if tb_offset is None:",
+   "                tb_offset = 1 if compiled else 0"
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "rich",
+  "sha": "720800e6930d85ad027b1e9bd0cbb96b5e994ce3",
+  "file": "rich/text.py",
+  "subject": "fix tab size issue",
+  "minus": [
+   "        assert tab_size is not None"
+  ],
+  "plus": [
+   "        if tab_size is None:",
+   "            tab_size = 8",
+   ""
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "rich",
+  "sha": "fd77a473f622fbbf479b363db62b4d2a540d79dc",
+  "file": "rich/pretty.py",
+  "subject": "fix: fix get braces for `deque`",
+  "minus": [
+   "    deque: lambda _object: (\"deque([\", \"])\", \"deque()\"),"
+  ],
+  "plus": [
+   "    Deque,",
+   "def _get_braces_for_deque(_object: Deque[Any]) -> Tuple[str, str, str]:",
+   "    if _object.maxlen is None:",
+   "        return (\"deque([\", \"])\", \"deque()\")",
+   "    return (\"deque([\", f\"], maxlen={_object.maxlen})\", f\"deque(maxlen={_object.maxlen})\")",
+   "",
+   "",
+   "    deque: _get_braces_for_deque,"
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "rich",
+  "sha": "b7ddacf415f50633195db26d559923f596c3cedb",
+  "file": "rich/logging.py",
+  "subject": "fix: avoid coverage gap",
+  "minus": [
+   "        if self.keywords is not None:",
+   "        elif self.KEYWORDS is not None:",
+   "            message_text.highlight_words(self.KEYWORDS, \"logging.keyword\")"
+  ],
+  "plus": [
+   "        if self.keywords is None:",
+   "            self.keywords = self.KEYWORDS",
+   "",
+   "        if self.keywords:"
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "rich",
+  "sha": "8a74a97563dad3437ce537ed07dc72e031c54638",
+  "file": "rich/cells.py",
+  "subject": "fix infinite loop",
+  "minus": [
+   "    end = cell_size",
+   "        before = text[:pos]"
+  ],
+  "plus": [
+   "    if not total:",
+   "        return \"\"",
+   "    end = len(text)",
+   "        before = text[: pos + 1]"
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "rich",
+  "sha": "0c34ddcb67f5adff14917ac297d8473a78289b6c",
+  "file": "rich/console.py",
+  "subject": "fix black",
+  "minus": [
+   "        soft_wrap: bool = False,",
+   "            soft_wrap (bool, optional): Enable soft wrap mode which disables word wrapping and cropping. Defaults to False."
+  ],
+  "plus": [
+   "        soft_wrap (Optional[bool], optional): Set soft wrap default on print method. Defaults to False.",
+   "        soft_wrap: bool = False,",
+   "        self.soft_wrap = soft_wrap",
+   "        soft_wrap: bool = None,",
+   "            soft_wrap (bool, optional): Enable soft wrap mode which disables word wrapping and cropping of text. Defaults to False.",
+   "        if soft_wrap is None:",
+   "            soft_wrap = self.soft_wrap"
+  ]
+ },
+ {
+  "shape": "guard",
+  "repo": "rich",
+  "sha": "b74e5bae2d6b1ba9d8237f5f769e6ae7eba677f6",
+  "file": "rich/text.py",
+  "subject": "fixes / tests for tabs_to_spaces",
+  "minus": [
+   "            tab_size (int, optional): Number of spaces per tab, or ``None`` to use ``console.tab_size``. Defaults to None.",
+   "        tab_size: int = None,",
+   "    def tabs_to_spaces(self, tab_size: int = 8) -> \"Text\":"
+  ],
+  "plus": [
+   "            tab_size (int): Number of spaces per tab, or ``None`` to use ``console.tab_size``. Defaults to 8.",
+   "        tab_size: int = 8,",
+   "    def tabs_to_spaces(self, tab_size: int = None) -> \"Text\":",
+   "        if tab_size is None:",
+   "            tab_size = self.tab_size"
+  ]
+ },
+ {
+  "shape": "import",
+  "repo": "arrow",
+  "sha": "1a60d8bb80c6ff4b29ca594eaf3626e77375fe0e",
+  "file": "arrow/util.py",
+  "subject": "Fixed bug with long and int on Python 2.7",
+  "minus": [
+   "        isinstance(value, int) or isinstance(value, float) or isinstance(value, str)"
+  ],
+  "plus": [
+   "import numbers",
+   "        isinstance(value, numbers.Integral)",
+   "        or isinstance(value, float)",
+   "        or isinstance(value, str)"
+  ]
+ },
+ {
+  "shape": "import",
+  "repo": "arrow",
+  "sha": "1be016dad415f820836e3f82e6a25025d04a64b7",
+  "file": "arrow/locales.py",
+  "subject": "Fix humanize() to return unicode",
+  "minus": [],
+  "plus": [
+   "from __future__ import unicode_literals"
+  ]
+ },
+ {
+  "shape": "import",
+  "repo": "click",
+  "sha": "19655099e6cc7955879ccf5059e5043a5464c2eb",
+  "file": "click/_winconsole.py",
+  "subject": "Fixed some small bugs on windows",
+  "minus": [
+   "        super(WindowsConsoleRawIOBase, self).isatty()"
+  ],
+  "plus": [
+   "import time",
+   "        io.RawIOBase.isatty(self)"
+  ]
+ },
+ {
+  "shape": "import",
+  "repo": "click",
+  "sha": "0030136148ce19f9cf2a12970364ce622fa71ac9",
+  "file": "click/_compat.py",
+  "subject": "Fix binary mode stdio on Windows",
+  "minus": [],
+  "plus": [
+   "    def set_binary_mode(f):",
+   "        if sys.platform == 'win32':",
+   "            import os",
+   "            import msvcrt",
+   "            msvcrt.setmode(f.fileno(), os.O_BINARY)",
+   "",
+   "        set_binary_mode(sys.stdin)",
+   "        set_binary_mode(sys.stdout)",
+   "        set_binary_mode(sys.stderr)"
+  ]
+ },
+ {
+  "shape": "import",
+  "repo": "rich",
+  "sha": "ae4a70cd78b145c042ecd4f456df6a82a409f910",
+  "file": "rich/progress.py",
+  "subject": "Fix the return type of `Progress.__enter__`",
+  "minus": [
+   "    def __enter__(self) -> \"Progress\":"
+  ],
+  "plus": [
+   "if sys.version_info >= (3, 11):",
+   "    from typing import Self",
+   "else:",
+   "    from typing_extensions import Self  # pragma: no cover",
+   "",
+   "    def __enter__(self) -> Self:"
+  ]
+ },
+ {
+  "shape": "import",
+  "repo": "rich",
+  "sha": "ac69488768e9c54cdef26e45b26a1b42ebf2f5d3",
+  "file": "rich/syntax.py",
+  "subject": "fix for syntax measure",
+  "minus": [
+   "            width = self.code_width + self._numbers_column_width + right + left",
+   "        return Measurement(self._numbers_column_width, options.max_width)"
+  ],
+  "plus": [
+   "from .cells import cell_len",
+   "",
+   "        padding = left + right",
+   "            width = self.code_width + self._numbers_column_width + padding + 1",
+   "        width = (",
+   "            self._numbers_column_width",
+   "            + padding",
+   "            + max(cell_len(line) for line in self.code.splitlines())",
+   "        )",
+   "        if self.line_numbers:",
+   "            width += 1",
+   "        return Measurement(self._numbers_column_width, width)"
+  ]
+ },
+ {
+  "shape": "import",
+  "repo": "rich",
+  "sha": "0138b18950b3d21f6fdb52b1e2e2ab3ef459d256",
+  "file": "rich/pretty.py",
+  "subject": "fix tuple of one issue",
+  "minus": [
+   "                if hasattr(value, \"__rich_console__\") or hasattr(value, \"__rich__\")",
+   "        lines = [_Line(node=self)]",
+   "                suffix=\"\" if child.last else \",\",",
+   "            suffix=\"\" if node.last else \",\","
+  ],
+  "plus": [
+   "from .abc import RichRenderable",
+   "    expand_all: bool = False,",
+   "        expand_all (bool, optional): Expand all containers. Defaults to False",
+   "                if isinstance(value, RichRenderable)",
+   "                    expand_all=expand_all,",
+   "    @property",
+   "    def separator(self) -> str:",
+   "        \"\"\"Get separator between items.\"\"\"",
+   "        return \"\" if self.last else \",\"",
+   "",
+   "        lines = [_Line(node=self, is_root=True)]",
+   "    is_root: bool = False",
+   "        tuple_of_one = node.is_tuple and len(node.children) == 1",
+   "            separator = \",\" if tuple_of_one else child.separator",
+   "                suffix=separator,",
+   "            suffix=\",\" if (tuple_of_one and not self.is_root) else node.separator,"
+  ]
+ },
+ {
+  "shape": "import",
+  "repo": "rich",
+  "sha": "88bc65df2b3e5a9a2368aaec0f6348509172cacd",
+  "file": "examples/bars.py",
+  "subject": "fix bars example",
+  "minus": [
+   "Use Bar to renderer a sort-of cirlce.",
+   "    y = (row / SIZE) * 2 - 1",
+   "    bar = Bar(1, width=SIZE * 2, begin=1 - x, end=x, color=color)",
+   "    print(bar)"
+  ],
+  "plus": [
+   "Use Bar to renderer a sort-of circle.",
+   "from rich.align import Align",
+   "    y = (row / (SIZE - 1)) * 2 - 1",
+   "    bar = Bar(2, width=SIZE * 2, begin=1 - x, end=1 + x, color=color)",
+   "    print(Align.center(bar))"
+  ]
+ },
+ {
+  "shape": "import",
+  "repo": "rich",
+  "sha": "774b5e21151c22968e9f10d99ed43ed05550c86b",
+  "file": "rich/pretty.py",
+  "subject": "fix underscore missing in repl",
+  "minus": [],
+  "plus": [
+   "import builtins",
+   "",
+   "            builtins._ = None",
+   "            builtins._ = value"
+  ]
+ }
+]

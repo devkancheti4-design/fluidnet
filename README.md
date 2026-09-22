@@ -2,117 +2,97 @@
 
 **You teach it a bug once, and it repairs every future one — with a proof, not a guess.**
 
-fluidnet is not a model. There is no network, no weights, no prompt, no tokens. It is many small
-**nets**, each a [fluidfix](https://github.com/devkancheti4-design/fluidfix) guard — six integer laws
-that decide, the target's own test suite that judges, a class property that proves — plus what sits
-around them: an **overseer** that routes a failing suite to the net whose taught shapes match,
-**descent** for more than one fault at a time, and **certification** of a fix nobody here wrote.
-fluidfix is one part; this repository is the whole.
+Not a model. No weights, no prompt, no tokens. Six integer laws decide, your own test suite judges, a
+property you wrote proves. It repairs the fault shapes you taught it, refuses everything else with the
+tree untouched, and can certify a fix somebody else wrote.
 
-It repairs the faults you taught it, proves each fix correct over every input in range, certifies fixes
-it didn't write — and never attempts open-ended bugs, by design.
+**[Watch it run — 3:52, every command live](docs/media/fluidnet.mp4)** · [how it works](docs/FLUIDNET.md)
 
-**[Watch it run — 3:52, live, nothing generated](docs/media/fluidnet.mp4)** · [how it works, in full](docs/FLUIDNET.md)
-
----
-
-## The recursive model
-
-A net never needs to *solve* a bug to *judge* a fix. So the same gates that certify a net's own repair —
-red before, green after on the full suite, stable on re-check, nothing else broken, byte-exact rollback —
-certify anyone's: a colleague's, a model's, another net's. That is what lets nets check nets, and it is
-why the system can be many small cheap parts under one overseer instead of one large trusted one.
-
-```
-you teach, once per shape ─────────────┐
-                                       v
-a failing test ──> overseer routes ──> net 1 · net 2 · net 3 …   (7 taught classes each, one process each)
-                                       │
-                          inside a net │ localise → six laws → applier → PROPERTY GATE → your suite → certificate
-                                       │           refuses for free ─┘        the only acceptor ─┘
-a patch you didn't write ──────────────┴──> the same suite gates ──> certified, or refused and rolled back
-```
-
-Why many nets: a guard's dictionary is 16 slots, 7 of them yours — a hard ceiling, but *per process*.
-N nets carry 7N taught classes; the overseer only routes.
-
-## Setup
+## Install
 
 ```bash
-git clone https://github.com/devkancheti4-design/fluidnet
-cd fluidnet
+git clone https://github.com/devkancheti4-design/fluidnet && cd fluidnet
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e .          # pulls fluidfix from its git master — PyPI's 0.15.0 predates the property gate
-fluidnet doctor           # is this install able to prove, not just guess?
-fluidfix selfcheck        # re-derives the six laws on your machine, exhaustively
+pip install -e .
+fluidnet doctor          # must say: class-property gate: present · pytest-cov: present
+fluidfix selfcheck       # must end: SELFCHECK PASS — 6 laws re-derived
 ```
+
+If `doctor` complains, stop and fix that first. Everything below assumes it passed.
+
+## Use it, in the order you will actually use it
+
+**1. Run it on a red suite, before teaching anything.**
+```bash
+fluidfix guard . --dry-run        # proposes, shows the diff, restores the tree byte-exact
+fluidfix guard . --commit         # same, but commits the repaired file when the suite goes green
+```
+Nine fault classes ship (`fluidfix kinds`). Exit 0 repaired, 2 refused. On refusal read
+`.fluidfix/last_refusal.json` — every candidate it tried and the test that killed it.
+
+**2. The second time you fix the same shape of bug by hand, teach it.**
+```bash
+fluidnet teach > rules.py         # the template: a signal, a rewrite, and a PROPERTY
+```
+Edit the three parts. Under 20 lines of Python. Keep `rules.py` in the repository it maintains.
+Real, working ones to copy from: [`examples/real/rules.py`](examples/real/rules.py).
+
+**3. Run with what you taught.**
+```bash
+fluidfix guard . --dictionary rules.py --commit
+```
+One dictionary holds up to 7 of your classes (kinds 4–7 and 13–15). Need more? A second file, a second
+process: `fluidnet watch . --net rules.py --net more.py --commit` tries each in turn.
+
+**4. Someone hands you a fix — a colleague, a model. Certify it before you trust it.**
+```bash
+fluidnet certify . --file pkg/thing.py --patch their_version.py
+```
+CERTIFIED means: red before, green on the full suite, stable on re-run, nothing else broken, file restored
+byte-exact. Anything else is refused and says why.
+
+**5. Two bugs in one file.** A single pass can't turn a two-fault file green, so it refuses. Use descent:
+```bash
+fluidnet descend pkg/thing.py --dictionary rules.py --test 'assert f(1) == 2' --test 'assert g() == 0' --write
+```
+
+## Using it efficiently
+
+- **Teach on the second occurrence, not the first.** One instance is an incident; two is a shape.
+- **Narrow signal, small rewrite.** A signal that matches every line buys candidates the suite has to
+  reject one by one. `\.get\("(\w+)"\)` beats `\w+\.\w+`.
+- **Every property ships with a control that fails it.** A property nothing can fail proves nothing; the
+  gate reports a zero-input check as UNPROVEN, never PROVEN.
+- **When it hands you a fix, run one input its tests never used.** The proof is over a bounded domain; the
+  suite is a finite set of examples. One extra input is cheap and has caught a wrong fix that passed both.
+- **Run it per commit, not per keystroke.** It runs your suite once per candidate.
+- **Expect it to cover your repeats, not your history.** On 565 real fixes from four open-source projects
+  a generic vocabulary reached about 2%; where a fix was one mechanical token it reached 75%. Replay your
+  own last year of fixes against your dictionary — that number is the only one that matters to you.
+
+## What you will get wrong setting it up
+
+Every one of these happened this month.
+
+| symptom | cause | fix |
+|---|---|---|
+| `fluidfix --version` looks right but `doctor` says the property gate is missing | a stale global `fluidfix` earlier on PATH than your venv — same version string, older code | use `.venv/bin/fluidfix`, or `pip install -e .` again inside the venv |
+| refusal says *NO-OBSERVATIONS* after 0 suite runs | `pytest-cov` is not installed in the interpreter that runs your suite | `pip install pytest-cov` there; `doctor` checks it |
+| "0 tests collected", refusal, nothing tried | your `pyproject` sets `filterwarnings = error` and a warning fires at collection | pass `--python` to a venv where your suite collects, or fix the warning |
+| it refuses a bug you know it can fix | the suite was already red before the bug — pre-existing failures make nothing certifiable | get green first, or deselect the broken tests for the run |
+| a wrong fix went green and got committed | your test only exercises the case where right and wrong agree (`k = 1`, both give the same answer) | write the property; add a test the fix never used |
+| you loaded classes but the gate never refuses anything | properties live in the dictionary file; a file without `teach_property()` leaves the gate **failing open** — every candidate passes | `fluidfix.props.classes_without_properties([4,5,6,7])` after loading; put the property in the same file |
+| the right candidate is never tried | candidate cap — a broad signal spends the budget on one attribute's siblings before reaching the next | narrow the signal, or `--max-candidates 64` when suite runs are cheap |
+| two bugs, one file, refused | one pass repairs one fault | `fluidnet descend` |
+| two runs on one checkout, both wrong | a second run mutated the tree while the first was judging | never run two guards on the same clone |
+| a copied venv imports the wrong package | an editable install's `.pth` holds an absolute path | recreate the venv; don't copy it |
+| it "repairs" a docstring | the signal matched prose; the suite can't judge prose so anything goes | exclude comment and docstring lines in the signal |
+| real bugs from git history barely get fixed | real fixes bundle the mechanical part with other edits; the class does its part and the rest is yours | see [`examples/real`](examples/real) — both numbers are reported |
 
 ## Test
 
 ```bash
-pytest -q
+pytest -q        # 15 tests, each a real pytest project in a temp dir, nothing mocked
 ```
-
-Twelve tests, each a real run against a real pytest project built in a temp directory — nothing mocked:
-
-| test | what it proves |
-|---|---|
-| `test_certify` | a correct patch is CERTIFIED with the file restored byte-exact; a patch that fixes the red test but breaks another is refused as COLLATERAL; green code is NOT-RED |
-| `test_descend` | three faults from three classes fall in three steps, failing 3 → 2 → 1 → 0; two faults on *one line* are refused at depth 1 and repaired at depth 2; a stalled descent returns the original untouched |
-| `test_overseer` | a net's signals are read without touching the live registry; the net that recognises more of the repository is tried first; the first net whose real `fluidfix guard` process repairs wins, dry-run restores byte-exact |
-| `test_cli` | `doctor` passes, `teach` prints a class *and* a property |
-
-## How an engineer uses it
-
-**Every time you fix the same shape of bug twice, teach it once — from then on it owns that shape and
-hands you a proof with every fix, while you keep the open-ended work.**
-
-1. **Let it watch.** Run `fluidnet watch . --net rules.py` on a red suite (dry-run by default). It repairs
-   what it knows, refuses what it doesn't, and touches nothing on refusal.
-2. **Teach.** `fluidnet teach` prints the template: a class is a *signal*, a *rewrite*, and a *property* —
-   what every rewrite must keep true, checked over a bounded domain before any test runs. Written once,
-   beside your code, in a dictionary file. Give a property a control that fails it; a check nothing can
-   fail proves nothing, and the gate reports zero-input checks as UNPROVEN, never PROVEN.
-3. **Hand over the repeating half.** `fluidnet watch . --net a.py --net b.py --commit`. Each net is its own
-   `fluidfix` process. Every fix comes with a certificate or a refusal report naming what killed each
-   candidate — including the ones the property refused *before* the suite ran.
-4. **Keep the open-ended half.** It never attempts it. When you solve something with a shape, teach it.
-   And when a model or a colleague hands you a fix: `fluidnet certify . --file pkg/x.py --patch fixed.py`.
-
-```
-fluidnet watch <root> --net a.py [--net b.py …] [--commit]   route once; one fluidfix process per net
-fluidnet certify <root> --file <rel> --patch <file>           judge a fix nobody here wrote
-fluidnet descend <file> --test 'assert …' [--depth 2]         more than one bug in one file
-fluidnet teach                                                the template for a class and its property
-fluidnet doctor                                               gate present? pytest-cov? fluidfix on PATH?
-```
-
-## The demo
-
-`docs/demo/` rebuilds the repository in the video and runs every scene live: `zsh docs/demo/setup.sh
-/tmp/ledgerly && zsh docs/demo/live.sh /tmp/ledgerly`. The turn of it: a suite that only ever asks
-`k = 1` accepts `int(k * len(text) - 1)`; a nine-line property refuses it before any suite run; the
-placement law's `int(k * (len(text) - 1))` is proven and ships.
-
-## What is measured
-
-| | |
-|---|---|
-| repairs within a taught shape | 84/84 exact across seven syntactic positions never taught; 0/12 wrong accepts on a negative control |
-| generalisation | 240/240 and 30/30 per class on unseen instances; a class taught from `click` ran unchanged on `rich` and `sortedcontainers` |
-| class properties | 5/5 controls refuted; the `rich` incident caught with no suite, at zero suite runs |
-| certification | 14/14 model-written fixes certified, 29/29 adversarial refused, 307 suite runs, byte-exact rollback every time |
-| multi-fault descent | 3 faults, 3 classes never taught together, 11 suite runs |
-| real history, knowledge only | the current vocabulary reaches 10 of 565 real fixes — 75% of single-token mechanical fixes, ~2% of everything, because most real one-line fixes are data and docstrings |
-
-## Honest boundaries
-
-- Proofs are over a **bounded** domain, stated in the certificate, not over all inputs.
-- A class property lives in a dictionary file; load a dictionary without it and the gate **fails open** —
-  `fluidnet doctor` checks the gate exists, and `fluidfix.props.classes_without_properties()` names the
-  classes it cannot speak for.
-- Generic knowledge covers very little of someone else's history. What it covers is *your* repeating work,
-  and the way to know that number is to replay your own history against your vocabulary.
-- Open-ended bugs have no path through the system. That is the design.
 
 AGPL-3.0-or-later.

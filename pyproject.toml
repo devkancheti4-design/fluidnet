@@ -12,6 +12,9 @@ dependencies = [
   "pytest-cov>=5",
 ]
 
+[project.optional-dependencies]
+mcp = ["mcp>=1.0"]
+
 [project.scripts]
 fluidnet = "fluidnet.cli:main"
 

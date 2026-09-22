@@ -1,0 +1,23 @@
+{
+ "true": {
+  "ALLOW": 14
+ },
+ "flaky": {
+  "BLOCK": 14
+ },
+ "collateral": {
+  "BLOCK": 6
+ },
+ "overfit": {
+  "ALLOW": 14
+ },
+ "outside-near": {
+  "ALLOW": 13
+ },
+ "outside-far": {
+  "ALLOW": 14
+ },
+ "wrong": {
+  "BLOCK": 9
+ }
+}

@@ -69,6 +69,19 @@ def cmd_descend(a) -> int:
     return 0
 
 
+def cmd_gate(a) -> int:
+    from .gate import gate, render, ALLOW, WARN
+    g = gate(a.root, a.file, Path(a.patch).read_text(encoding="utf-8"), dictionary=a.dictionary,
+             python=a.python or sys.executable, confirm=a.confirm)
+    print(json.dumps(g, indent=1) if a.json else render(g))
+    return {ALLOW: 0, WARN: 1}.get(g["verdict"], 2)
+
+
+def cmd_mcp(a) -> int:
+    from .mcp_server import main as serve
+    return serve()
+
+
 def cmd_doctor(a) -> int:
     ok = True
     try:
@@ -123,6 +136,13 @@ def main(argv=None) -> int:
     d.add_argument("--dictionary"); d.add_argument("--depth", type=int, default=1)
     d.add_argument("--write", action="store_true", help="write the repaired file (default: print only)")
     d.add_argument("--python"); d.set_defaults(fn=cmd_descend)
+
+    g = sub.add_parser("gate", help="ALLOW / WARN / BLOCK a proposed change to a file — the code-action gate")
+    g.add_argument("root"); g.add_argument("--file", required=True); g.add_argument("--patch", required=True)
+    g.add_argument("--dictionary"); g.add_argument("--confirm", type=int, default=2); g.add_argument("--python")
+    g.add_argument("--json", action="store_true"); g.set_defaults(fn=cmd_gate)
+
+    sub.add_parser("mcp", help="serve gate / certify / propose over MCP (stdio); needs fluidnet[mcp]").set_defaults(fn=cmd_mcp)
 
     sub.add_parser("doctor", help="is this install able to prove, not just guess?").set_defaults(fn=cmd_doctor)
     sub.add_parser("teach", help="print the template for a class and its property").set_defaults(fn=cmd_teach)

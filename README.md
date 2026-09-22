@@ -56,6 +56,14 @@ byte-exact. Anything else is refused and says why.
 fluidnet descend pkg/thing.py --dictionary rules.py --test 'assert f(1) == 2' --test 'assert g() == 0' --write
 ```
 
+**6. An agent proposes code changes? Gate them.**
+```bash
+fluidnet gate . --file pkg/thing.py --patch proposed.py --dictionary rules.py    # ALLOW / WARN / BLOCK
+pip install 'fluidnet[mcp]' && fluidnet mcp                                       # the same, as MCP tools
+```
+The verdict vocabulary of a truth layer, for the one action a truth layer cannot judge. Details and the
+replay of 84 model-written and adversarial patches: [docs/BRAIN.md](docs/BRAIN.md).
+
 ## Using it efficiently
 
 - **Teach on the second occurrence, not the first.** One instance is an incident; two is a shape.
@@ -92,7 +100,7 @@ Every one of these happened this month.
 ## Test
 
 ```bash
-pytest -q        # 15 tests, each a real pytest project in a temp dir, nothing mocked
+pytest -q        # 20 tests, each a real pytest project in a temp dir, nothing mocked
 ```
 
 AGPL-3.0-or-later.

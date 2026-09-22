@@ -1,0 +1,27 @@
+[project]
+name = "fluidnet"
+version = "0.1.0"
+description = "Teach it a bug once and it repairs every future one — with a proof, not a guess. Many small nets, one overseer; fluidfix is the guard inside each net."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "AGPL-3.0-or-later"
+authors = [{ name = "devkancheti4-design" }]
+dependencies = [
+  # PyPI's fluidfix 0.15.0 predates the class-property gate; the gate is on master.
+  "fluidfix @ git+https://github.com/devkancheti4-design/fluidfix.git@master",
+  "pytest>=8",
+  "pytest-cov>=5",
+]
+
+[project.scripts]
+fluidnet = "fluidnet.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

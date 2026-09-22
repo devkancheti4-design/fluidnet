@@ -13,7 +13,7 @@ tree untouched, and can certify a fix somebody else wrote.
 ```bash
 git clone https://github.com/devkancheti4-design/fluidnet && cd fluidnet
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e .
+pip install -e .           # pulls fluidfix>=0.16.0 from PyPI
 fluidnet doctor          # must say: class-property gate: present · pytest-cov: present
 fluidfix selfcheck       # must end: SELFCHECK PASS — 6 laws re-derived
 ```

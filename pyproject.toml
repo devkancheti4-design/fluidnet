@@ -7,8 +7,7 @@ requires-python = ">=3.11"
 license = "AGPL-3.0-or-later"
 authors = [{ name = "devkancheti4-design" }]
 dependencies = [
-  # PyPI's fluidfix 0.15.0 predates the class-property gate; the gate is on master.
-  "fluidfix @ git+https://github.com/devkancheti4-design/fluidfix.git@master",
+  "fluidfix>=0.16.0",          # 0.16.0 is the first release with the class-property gate
   "pytest>=8",
   "pytest-cov>=5",
 ]

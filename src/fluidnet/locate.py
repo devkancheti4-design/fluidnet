@@ -94,10 +94,18 @@ class Located:
             for i, f in enumerate(self.omission[:3], 1):
                 out.append(f"  {i}. {f.file}:{f.line}   {f.source.strip()[:60]}")
                 out.append(f"       omission {f.rank:>2}/15  [{', '.join(f.lanes)}]")
-        if self.when:
+        if self.when and self.when.get("commit"):
             w = self.when
             out.append(f"when: {w['commit'][:8]} \"{w['subject']}\" introduced the failure "
                        f"(bisect, {w['runs']} test runs)")
+        elif self.when and self.when.get("older_than"):
+            o = self.when["older_than"]
+            out.append(f"when: at least as old as {o['commit'][:8]} ({o['date']}, HEAD~{o['distance']}) — red at every "
+                       f"revision the failing test can run at ({self.when['runs']} test runs)")
+        elif self.when and self.when.get("candidates"):
+            c = self.when["candidates"]
+            out.append(f"when: one of {len(c)} commits ({c[0][:8]} … {c[-1][:8]}) — the test cannot run at them "
+                       f"(bisect, {self.when['runs']} test runs)")
         if self.why:
             y = self.why
             if y.get("diverges_at"):
@@ -133,6 +141,28 @@ def _assertion_tokens(out: str) -> set[str]:
             toks |= {t.strip("\"'") for t in _LITERAL.findall(s)}
             toks |= {m for m in re.findall(r"\b([A-Za-z_]\w*)\(", s)}
     return {t for t in toks if t not in {"assert", "where", "and", "or", "not", "in", "is"}}
+
+
+def _src_line(root: str, rel: str, ln: int) -> str:
+    try:
+        return Path(root, rel).read_text(encoding="utf-8").split("\n")[ln - 1]
+    except Exception:
+        return ""
+
+
+def _line_bits(root: str, out: str, rel: str, ln: int, src: str, cache: dict) -> dict:
+    """The body's measurement of one line: FRAME, LITERAL, RECENT. Per-file work is cached."""
+    if rel not in cache:
+        cache[rel] = (_frames_in(out, rel), _recent_lines(root, rel))
+    frames, recent = cache[rel]
+    bits = {}
+    if ln in frames:
+        bits["FRAME"] = 1
+    if any(t and (t in src) for t in cache["toks"]):
+        bits["LITERAL"] = 1
+    if ln in recent:
+        bits["RECENT"] = 1
+    return bits
 
 
 def where(oracle: Oracle, out: str, top_files: int = 3) -> tuple[list[Finding], list[str]]:
@@ -236,6 +266,96 @@ def _purge_pyc(tree: Path) -> None:
 _NO_PYC = {"PYTHONDONTWRITEBYTECODE": "1"}
 
 
+_STEP = r'''
+# one bisect step. argv: overlay.json python timeout extra_args_json ids...
+# exit 0 green, 1 red, 125 the test cannot run here (a SKIP to git bisect, never a verdict)
+import ast, json, os, shutil, subprocess, sys
+ov = json.load(open(sys.argv[1])); py, timeout = sys.argv[2], int(sys.argv[3]); extra = json.loads(sys.argv[4]); ids = sys.argv[5:]
+tree = os.getcwd()
+def purge():
+    for d, dirs, _ in os.walk(tree):
+        for x in list(dirs):
+            if x == "__pycache__": shutil.rmtree(os.path.join(d, x), ignore_errors=True); dirs.remove(x)
+def restore():
+    subprocess.run(["git", "checkout", "-q", "--", "."], capture_output=True)
+    for rel in ov:
+        if subprocess.run(["git", "ls-files", "--error-unmatch", rel], capture_output=True).returncode != 0:
+            try: os.remove(os.path.join(tree, rel))
+            except OSError: pass
+def wanted(rel):
+    names = set()
+    for i in ids:
+        f, _, rest = i.partition("::")
+        if f == rel and rest: names.add(rest.split("::")[0].split("[")[0])
+    return names
+def apply(minimal):
+    for rel, content in ov.items():
+        dst = os.path.join(tree, rel); os.makedirs(os.path.dirname(dst) or ".", exist_ok=True)
+        if not (minimal and os.path.exists(dst)):
+            open(dst, "w", encoding="utf-8").write(content); continue
+        # the revision keeps ITS OWN file; only the new test functions (and classes) are appended, so a
+        # modern import at the top of the test file cannot make an old revision uncollectable
+        old = open(dst, encoding="utf-8").read()
+        try: mod, oldmod = ast.parse(content), ast.parse(old)
+        except SyntaxError: open(dst, "w", encoding="utf-8").write(content); continue
+        def names(n):
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)): return {n.name}
+            if isinstance(n, ast.Assign): return {t.id for t in n.targets if isinstance(t, ast.Name)}
+            if isinstance(n, (ast.Import, ast.ImportFrom)): return {(a.asname or a.name).split(".")[0] for a in n.names}
+            return set()
+        have = set().union(*(names(n) for n in oldmod.body)) if oldmod.body else set()
+        # the failing tests travel with what they reference, transitively, and nothing else: a whole file's
+        # worth of new module-level code would break collection at a revision that lacks one of its names
+        # (measured on click: carrying everything shrank the reach from 2014 to 2026)
+        by_name = {}
+        for node in mod.body:
+            for nm in names(node): by_name.setdefault(nm, node)
+        want = wanted(rel); need, chosen, queue = set(want), [], list(want)
+        while queue:
+            nm = queue.pop(); node = by_name.get(nm)
+            if node is None or (nm in have and nm not in want) or any(node is c for c in chosen): continue
+            chosen.append(node)
+            for sub in ast.walk(node):
+                if isinstance(sub, ast.Name) and sub.id not in need:
+                    need.add(sub.id); queue.append(sub.id)
+        lines = content.split("\n"); segs = []
+        for node in sorted(chosen, key=lambda n: n.lineno):
+            start = min([node.lineno] + [d.lineno for d in getattr(node, "decorator_list", [])])
+            seg = "\n".join(lines[start - 1:node.end_lineno])
+            if isinstance(node, (ast.Import, ast.ImportFrom, ast.Assign)):
+                seg = "try:\n    " + seg.replace("\n", "\n    ") + "\nexcept Exception:\n    pass"
+            segs.append(seg)
+        open(dst, "w", encoding="utf-8").write(old.rstrip("\n") + "\n\n\n" + "\n\n\n".join(segs) + "\n")
+import re
+def run(fallback=False):
+    purge()
+    pp = [os.path.join(tree, "src")] if os.path.isdir(os.path.join(tree, "src")) else []
+    pp += [tree] + ([os.environ["PYTHONPATH"]] if os.environ.get("PYTHONPATH") else [])
+    env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "PYTHONPATH": os.pathsep.join(pp)}
+    try:
+        r = subprocess.run([py, "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--no-header", "-W", "default", *extra, *ids],
+                           capture_output=True, text=True, timeout=timeout, env=env)
+    except subprocess.TimeoutExpired:
+        return 125
+    # the last run's output, for the record beside the overlay (the step is judged by exit code only)
+    with open(os.path.join(os.path.dirname(sys.argv[1]), "last_run.txt"), "a") as fh:
+        fh.write(f"=== {tree} rc {r.returncode}\n{r.stdout[-1500:]}\n{r.stderr[-800:]}\n")
+    if r.returncode == 0: return 0
+    if r.returncode == 1 and "no tests ran" not in r.stdout and "not found" not in r.stdout:
+        # with only the test functions carried, an error raised IN THE TEST FILE (a name or attribute the
+        # revision does not have) means the test could not be evaluated here; a failure raised in the code
+        # under test is still a verdict
+        if fallback and re.search(r"^(?:tests?/|.*test_)\S*\.py:\d+: (?:NameError|ImportError|ModuleNotFoundError|AttributeError|TypeError)\b", r.stdout, re.M):
+            return 125
+        return 1
+    return 125
+apply(False); rc = run()
+if rc == 125 and ov:
+    restore(); apply(True); rc = run(fallback=True)
+restore(); sys.exit(rc)
+'''
+
+
 def _apply_overlay(tree: Path, overlay: dict | None) -> None:
     """A regression test arrives WITH the fix; to use it as a bisect oracle further back it has to be
     carried into each revision. Only test files travel — never the fix."""
@@ -243,7 +363,25 @@ def _apply_overlay(tree: Path, overlay: dict | None) -> None:
         dst = tree / rel; dst.parent.mkdir(parents=True, exist_ok=True); dst.write_text(content, encoding="utf-8")
 
 
-def _run_tests_at(worktree: Path, python: str, ids: list[str], timeout: int = 120, overlay: dict | None = None) -> str:
+def _step_at(worktree: Path, python: str, ids: list[str], stage: Path, timeout: int = 120,
+             extra_args: list | None = None) -> str:
+    """green | red | unknown at the revision checked out in `worktree`, through the same step script git
+    bisect runs, so the probe and the bisect cannot disagree about what "cannot run" means."""
+    r = subprocess.run([sys.executable, "-B", str(stage / "_step.py"), str(stage / "overlay.json"), python, str(timeout),
+                        json.dumps(extra_args or []), *ids], cwd=worktree, capture_output=True, text=True,
+                       timeout=timeout * 2 + 30)
+    return {0: "green", 1: "red"}.get(r.returncode, "unknown")
+
+
+def _stage(overlay: dict | None) -> Path:
+    stage = Path(tempfile.mkdtemp(prefix="fn-overlay-"))
+    (stage / "_step.py").write_text(_STEP, encoding="utf-8")
+    (stage / "overlay.json").write_text(json.dumps(overlay or {}), encoding="utf-8")
+    return stage
+
+
+def _run_tests_at(worktree: Path, python: str, ids: list[str], timeout: int = 120, overlay: dict | None = None,
+                  extra_args: list | None = None) -> str:
     """green | red | unknown (the test cannot run at this revision).
 
     Bytecode is purged first and never written. Measured 2026-09-23: `total * 2` and `total + 2` are the
@@ -251,14 +389,30 @@ def _run_tests_at(worktree: Path, python: str, ids: list[str], timeout: int = 12
     the bad commit pass — bisect blamed the commit on top. The same whole-second trap the C oracle fell
     into with make 3.81."""
     _purge_pyc(worktree); _apply_overlay(worktree, overlay)
-    r = subprocess.run([python, "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--no-header", "-W", "default", *ids],
+    r = subprocess.run([python, "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--no-header", "-W", "default",
+                        *(extra_args or []), *ids],
                        cwd=worktree, capture_output=True, text=True, timeout=timeout,
-                       env={**os.environ, **_NO_PYC})
+                       env={**os.environ, **_NO_PYC, "PYTHONPATH": _own_code_first(worktree)})
+    # the throwaway tree is restored afterwards: an overlay that rewrites a TRACKED test file would otherwise
+    # make git refuse the next checkout (measured on click, whose regression tests live in existing files)
+    subprocess.run(["git", "-C", str(worktree), "checkout", "-q", "--", "."], capture_output=True)
     if r.returncode == 0:
         return "green"
     if "no tests ran" in r.stdout or "not found" in r.stdout or r.returncode in (2, 4, 5):
         return "unknown"
     return "red"
+
+
+def _own_code_first(tree: Path) -> str:
+    """PYTHONPATH that puts THIS checkout's code ahead of the project's editable install. Measured on click
+    2026-09-24: without it a bisect worktree at HEAD~300 imported HEAD's src/click through the .pth of the
+    venv, so every revision ran the same code and bisect could only ever confirm HEAD. Flat layouts were
+    spared by pytest's rootdir insertion; src layouts were silently wrong."""
+    parts = [str(tree / "src")] if (tree / "src").is_dir() else []
+    parts.append(str(tree))
+    if os.environ.get("PYTHONPATH"):
+        parts.append(os.environ["PYTHONPATH"])
+    return os.pathsep.join(parts)
 
 
 def when(root: str, python: str, ids: list[str], good: str | None = None, lookback: int = 24,
@@ -277,35 +431,81 @@ def when(root: str, python: str, ids: list[str], good: str | None = None, lookba
     subprocess.run(["git", "-C", root, "worktree", "add", "-q", "--detach", str(wt), head], capture_output=True)
     runs = 0
     try:
-        if _run_tests_at(wt, python, ids, overlay=overlay) != "red":
+        stage = _stage(overlay)
+        if _step_at(wt, python, ids, stage, extra_args=extra_args) != "red":
             return None, "the failing test is not red at HEAD in a clean worktree (uncommitted change?)"
         runs += 1
+        bad = head
         if good is None:
-            log = subprocess.run(["git", "-C", root, "log", f"-{lookback + 1}", "--format=%H"],
-                                 capture_output=True, text=True).stdout.split()[1:]
-            for sha in log:
+            def at(dist: int) -> str | None:
+                r = subprocess.run(["git", "-C", root, "rev-parse", "--verify", "-q", f"{head}~{dist}"],
+                                   capture_output=True, text=True)
+                return r.stdout.strip() or None
+
+            def verdict(sha: str) -> str:
+                nonlocal runs
+                subprocess.run(["git", "-C", str(wt), "checkout", "-q", "--detach", sha], capture_output=True)
+                runs += 1
+                return _step_at(wt, python, ids, stage, extra_args=extra_args)
+
+            # probe HEAD~1, ~2, ~4, ... along the first-parent line until green, or until the test can no
+            # longer run; then bisect the reach boundary. Red at every runnable revision is a verdict too.
+            lo, hi, dist, unknown_at = 0, None, 1, None
+            depth = int(subprocess.run(["git", "-C", root, "rev-list", "--count", "--first-parent", head],
+                                       capture_output=True, text=True).stdout.strip() or 1) - 1
+            while dist <= lookback:
                 if time.time() - t0 > budget_s:
                     return None, f"bisect budget ({budget_s}s) exhausted while searching for a green commit"
-                subprocess.run(["git", "-C", str(wt), "checkout", "-q", "--detach", sha], capture_output=True)
-                v = _run_tests_at(wt, python, ids, overlay=overlay); runs += 1
+                if dist > depth:
+                    if lo >= depth:
+                        break                               # the root itself has been judged
+                    dist = depth                            # the history ends: the root is the last probe
+                sha = at(dist)
+                if sha is None:
+                    break
+                v = verdict(sha)
                 if v == "green":
-                    good = sha; break
+                    good, hi = sha, dist; break
                 if v == "unknown":
-                    return None, f"the failing test cannot run at {sha[:8]} (it did not exist there); pass --good"
+                    unknown_at = dist; break
+                lo, bad = dist, sha
+                dist *= 2
+            if good is None and unknown_at is not None:
+                a, b = lo, unknown_at                       # red at ~a, cannot run at ~b: search between
+                while b - a > 1:
+                    if time.time() - t0 > budget_s:
+                        return None, f"bisect budget ({budget_s}s) exhausted while searching for a green commit"
+                    m = (a + b) // 2; sha = at(m); v = verdict(sha)
+                    if v == "green":
+                        good, hi = sha, m; break
+                    if v == "red":
+                        a, bad = m, sha
+                    else:
+                        b = m
             if good is None:
-                return None, f"no green commit within the last {lookback}; pass --good <rev>"
-        subprocess.run(["git", "-C", str(wt), "bisect", "start", head, good], capture_output=True, check=True)
-        stage = Path(tempfile.mkdtemp(prefix="fn-overlay-"))
-        _apply_overlay(stage, overlay)
-        copy = f'cp -R "{stage}/." . ; ' if overlay else ""
-        script = (f'find . -name __pycache__ -prune -exec rm -rf {{}} + ; {copy}'
-                  f'PYTHONDONTWRITEBYTECODE=1 {python} -B -m pytest -q -p no:cacheprovider --no-header -W default '
-                  f'{" ".join(extra_args or [])} {" ".join(ids)}')
-        r = subprocess.run(["git", "-C", str(wt), "bisect", "run", "sh", "-c", script],
+                oldest = at(lo) if lo else head
+                when_ = subprocess.run(["git", "-C", root, "log", "-1", "--format=%cs", oldest],
+                                       capture_output=True, text=True).stdout.strip()
+                reach = ("the test cannot run before that" if unknown_at is not None else
+                         "the history begins there" if lo >= depth else f"the lookback of {lookback} ends there")
+                return ({"commit": None, "older_than": {"commit": oldest, "date": when_, "distance": lo}, "runs": runs},
+                        f"red at every revision the failing test can run at, back to {oldest[:8]} ({when_}, "
+                        f"HEAD~{lo}); {reach} — the fault is at least that old")
+        subprocess.run(["git", "-C", str(wt), "bisect", "start", bad, good], capture_output=True, check=True)
+        # exit 1 = the test failed (bad); 0 = passed (good); 125 = the test could not run at this revision even
+        # with the minimal overlay — a SKIP to git bisect, never a verdict.
+        r = subprocess.run(["git", "-C", str(wt), "bisect", "run", sys.executable, "-B", str(stage / "_step.py"),
+                            str(stage / "overlay.json"), python, "120", json.dumps(extra_args or []), *ids],
                            capture_output=True, text=True, timeout=budget_s)
         m = re.search(r"([0-9a-f]{40}) is the first bad commit", r.stdout + r.stderr)
         runs += len(re.findall(r"Bisecting:", r.stdout))
         if not m:
+            mm = re.search(r"could be any of:\n((?:[0-9a-f]{40}\n)+)", r.stdout + r.stderr)
+            if mm:
+                cands = mm.group(1).split()
+                return ({"commit": None, "candidates": cands, "good": good, "runs": runs},
+                        f"bisect narrowed the first bad commit to {len(cands)} commits the test cannot run at "
+                        f"({cands[0][:8]} … {cands[-1][:8]})")
             return None, "bisect did not converge"
         bad = m.group(1)
         subject = subprocess.run(["git", "-C", root, "log", "-1", "--format=%s", bad], capture_output=True, text=True).stdout.strip()
@@ -329,17 +529,14 @@ def when(root: str, python: str, ids: list[str], good: str | None = None, lookba
 
 
 # ------------------------------------------------------------------ WHY
-_TRACER = r'''
-import json, sys, os, importlib, runpy
-root, test_id, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
-sys.path.insert(0, root)
-path, name = test_id.split("::", 1)
-mod = importlib.import_module(path[:-3].replace("/", ".").replace("\\", "."))
-fn = getattr(mod, name.split("[")[0])
+_PLUGIN = r'''
+# a pytest plugin: settrace around the test call only, so fixtures, parametrization and class tests all trace
+import json, os, sys, pytest
+root, out_path = os.environ["FN_TRACE_ROOT"], os.environ["FN_TRACE_OUT"]
 trace = []
 def tr(frame, event, arg):
     f = frame.f_code.co_filename
-    if not f.startswith(root) or os.sep + "tests" + os.sep in f or f.endswith("conftest.py"):
+    if not f.startswith(root) or os.sep + "tests" + os.sep in f or f.endswith("conftest.py") or os.sep + ".venv" + os.sep in f:
         return tr
     if event == "line":
         rel = os.path.relpath(f, root)
@@ -350,16 +547,52 @@ def tr(frame, event, arg):
             except Exception: loc[k] = "?"
         trace.append([rel, frame.f_lineno, loc])
     return tr
-sys.settrace(tr)
-try:
-    fn()
-    ok = True
-except BaseException:
-    ok = False
-finally:
-    sys.settrace(None)
-json.dump({"ok": ok, "trace": trace}, open(out_path, "w"))
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_call(item):
+    sys.settrace(tr)
+    try:
+        yield
+    finally:
+        sys.settrace(None)
+        json.dump({"trace": trace}, open(out_path, "w"))
 '''
+
+
+def _trace_test(root: str, python: str, tid: str, out_path: Path) -> str:
+    with tempfile.TemporaryDirectory() as pd:
+        Path(pd, "fn_trace_plugin.py").write_text(_PLUGIN, encoding="utf-8")
+        env = {**os.environ, **_NO_PYC, "FN_TRACE_ROOT": str(Path(root).resolve()), "FN_TRACE_OUT": str(out_path),
+               "PYTHONPATH": os.pathsep.join([pd] + ([os.environ["PYTHONPATH"]] if os.environ.get("PYTHONPATH") else []))}
+        r = subprocess.run([python, "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", "-p", "fn_trace_plugin",
+                            "--no-header", "-W", "default", tid], capture_output=True, text=True, timeout=300,
+                           cwd=root, env=env)
+        return (r.stdout + r.stderr).strip()[-200:]
+
+
+def _neighbour_test(root: str, failing: list[str]) -> str | None:
+    """The nearest test in the same file that is not failing — the sibling when the assertion names no function."""
+    tid = failing[0]; rel, _, path = tid.partition("::"); parts = path.split("[")[0].split("::")
+    try:
+        tree = ast.parse(Path(root, rel).read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    # top-level tests, or the methods of the failing test's class
+    body, prefix = tree.body, ""
+    if len(parts) == 2:
+        cls = next((n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == parts[0]), None)
+        if cls is None:
+            return None
+        body, prefix = cls.body, parts[0] + "::"
+    name = parts[-1]
+    names = [n.name for n in body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name.startswith("test")]
+    if name not in names:
+        return None
+    i = names.index(name); bad = {f.split("::", 1)[1].split("[")[0] for f in failing if f.startswith(rel + "::")}
+    for d in range(1, len(names)):
+        for j in (i - d, i + d):
+            if 0 <= j < len(names) and prefix + names[j] not in bad:
+                return f"{rel}::{prefix}{names[j]}"
+    return None
 
 
 def _sibling_test(root: str, failing: list[str], target: str) -> str | None:
@@ -386,17 +619,16 @@ def why(root: str, python: str, out: str, failing: list[str]) -> dict:
     calls = [c for c in _assertion_tokens(out) if re.match(r"^[A-Za-z_]\w*$", c)]
     m = re.search(r"where .* = ([A-Za-z_]\w*)\(", out) or re.search(r"assert ([A-Za-z_]\w*)\(", out)
     target = m.group(1) if m else (calls[0] if calls else None)
-    if not target:
-        return {"note": "the assertion names no function to trace — the WHY lane has no evidence"}
-    sib = _sibling_test(root, failing, target)
+    # no named function: the test itself is traced, against its nearest passing neighbour in the same file
+    sib = _sibling_test(root, failing, target) if target else _neighbour_test(root, failing)
+    target = target or "the test itself"
     traces = {}
     with tempfile.TemporaryDirectory() as td:
         for tag, tid in (("fail", failing[0]),) + ((("pass", sib),) if sib else ()):
             outp = Path(td) / f"{tag}.json"
-            r = subprocess.run([python, "-B", "-c", _TRACER, str(Path(root).resolve()), tid, str(outp)],
-                               capture_output=True, text=True, timeout=120, cwd=root, env={**os.environ, **_NO_PYC})
+            tail = _trace_test(root, python, tid, outp)
             if not outp.exists():
-                return {"target": target, "sibling": sib, "note": f"could not trace {tid}: {r.stderr.strip()[-160:]}"}
+                return {"target": target, "sibling": sib, "note": f"could not trace {tid}: {tail[-160:]}"}
             traces[tag] = json.load(open(outp))
     a = traces["fail"]["trace"]
     executed = {}
@@ -411,7 +643,8 @@ def why(root: str, python: str, out: str, failing: list[str]) -> dict:
     last = {"file": a[-1][0], "line": a[-1][1]}
     if not sib:
         return {"target": target, "last_executed": last, "executed": executed,
-                "note": f"no passing test calls {target}() — the WHY lane has no divergence to show"}
+                "note": f"no passing test calls {target}() — the WHY lane has no divergence to show"
+                        if target != "the test itself" else "no passing neighbour test — the WHY lane has no divergence to show"}
     b = traces["pass"]["trace"]
     for i, (fa, pb) in enumerate(zip(a, b)):
         if (fa[0], fa[1]) != (pb[0], pb[1]):
@@ -470,6 +703,7 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
     if sp:
         best = max(v[0] for v in sp.values())
         seen = {(f.file, f.line): f for f in L.where}
+        cache: dict = {"toks": _assertion_tokens(out)}
         F = len(L.failing)
         for (rel, ln), (score, ef, ep) in sp.items():
             if (rel, ln) in seen:
@@ -481,24 +715,32 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
             if (rel, ln) in seen:
                 seen[(rel, ln)].ochiai = score
                 seen[(rel, ln)].lanes.append(tag); seen[(rel, ln)].score += 3 if score >= best - 1e-9 else 1
-            elif score >= best - 1e-9:
-                try:
-                    src = Path(root, rel).read_text(encoding="utf-8").split("\n")[ln - 1]
-                except Exception:
-                    src = ""
-                if src.strip() and not src.strip().startswith(("def ", "class ", "import ", "from ", "#")):
-                    f = Finding(rel, ln, src, ["executed", tag], 3); f.ochiai = score
-                    f.bits.update({"EF_ALL": int(ef == F), "EP_NONE": int(ep == 0)}); L.where.append(f)
+            elif score >= best - 1e-9 or ef == F:
+                src = _src_line(root, rel, ln)
+                if src.strip() and not src.strip().startswith(("def ", "class ", "import ", "from ", "#", '"""')):
+                    f = Finding(rel, ln, src, ["executed", tag], 3 if score >= best - 1e-9 else 1); f.ochiai = score
+                    f.bits.update({"EF_ALL": int(ef == F), "EP_NONE": int(ep == 0)})
+                    f.bits.update(_line_bits(root, out, rel, ln, src, cache))
+                    f.lanes += [b.lower() for b in ("FRAME", "LITERAL", "RECENT") if f.bits.get(b)]; L.where.append(f)
     else:
         L.notes.append("spectrum lane: no per-test coverage (pytest-cov missing, or nothing measured)")
     if bisect and L.failing:
+        if overlay is None:
+            # the failing tests' files, as they are now, travel into every revision: a test written today is
+            # otherwise no oracle before its own commit
+            overlay = {}
+            for rel in dict.fromkeys(f.split("::")[0] for f in L.failing):
+                try:
+                    overlay[rel] = Path(root, rel).read_text(encoding="utf-8")
+                except OSError:
+                    pass
         tell("when", "bisecting in a throwaway worktree")
         w, note = when(root, python, L.failing, good=good, lookback=lookback, budget_s=budget_s,
                        overlay=overlay, extra_args=extra_args)
         L.when = w
         if note:
             L.notes.append(note)
-        if w:
+        if w and w.get("commit"):
             for f in L.where:
                 for s, e in w["hunks"].get(f.file, []):
                     if s <= f.line <= e:

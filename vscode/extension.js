@@ -56,7 +56,7 @@ async function locate(folder, quiet) {
     if (i === 0) {
       const uri = vscode.Uri.file(path.join(root, f.file));
       const d = new vscode.Diagnostic(new vscode.Range(f.line - 1, 0, f.line - 1, 999),
-        `root cause by the cause law: ${f.rank}/15 — ${f.lanes.join(", ")}` + (L.when ? ` — introduced by ${L.when.commit.slice(0, 8)} "${L.when.subject}"` : ""),
+        `root cause by the cause law: ${f.rank}/15 — ${f.lanes.join(", ")}` + (L.when && L.when.commit ? ` — introduced by ${L.when.commit.slice(0, 8)} "${L.when.subject}"` : ""),
         vscode.DiagnosticSeverity.Error);
       d.source = "fluidnet"; dl.push([uri, [d]]);
     }
@@ -107,7 +107,8 @@ async function crawl() {
     `**fluidnet — root cause by the cause law**  \n\`${walk.file}:${walk.winner}\` · **cause ${top ? top.rank : "?"}/15**  \n` +
     `strong: ${strong.join(", ") || "—"} · weak: ${weak.join(", ") || "—"}  \nevidence: ${top ? top.lanes.join(", ") : ""}` +
     (L.omission && L.omission[0] ? `  \nif code is *missing*, it belongs at \`${L.omission[0].file}:${L.omission[0].line}\` — omission ${L.omission[0].rank}/15` : "") +
-    (L.when ? `  \nwhen: \`${L.when.commit.slice(0, 8)}\` “${L.when.subject}”` : "") +
+    (L.when && L.when.commit ? `  \nwhen: \`${L.when.commit.slice(0, 8)}\` “${L.when.subject}”` : "") +
+    (L.when && L.when.older_than ? `  \nwhen: at least as old as \`${L.when.older_than.commit.slice(0, 8)}\` (${L.when.older_than.date})` : "") +
     (L.why ? `  \nwhy: ${L.why.note || (L.why.diverges_at ? `parts at ${L.why.diverges_at.file}:${L.why.diverges_at.line}` : "")}` : ""));
   ed.setDecorations(winDeco, [{ range: w, hoverMessage: hover,
     renderOptions: { after: { contentText: ` ◀ cause ${top ? top.rank : "?"}/15 · ${strong.length ? "strong " + strong.join("+") : "no strong lane"}` } } }]);

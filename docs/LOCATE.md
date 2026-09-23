@@ -23,12 +23,16 @@ line, never by how many lines they execute: fluidfix's count-based file ranking 
 
 - *no passing test calls f() — the WHY lane has no evidence.* One failing test and no sibling: nothing to
   diff against. Write the sibling; that is also the test the fix needs.
-- *no green commit within the last 24; pass --good.* The bug is older than the lookback.
-- *the failing test cannot run at \<sha\> (it did not exist there).* The test arrived with the fix — WHEN
-  cannot use it as an oracle further back.
+- *when: at least as old as \<sha\> (\<date\>, HEAD~N) — red at every revision the failing test can run
+  at.* No green revision was found: the fault is at least that old. WHEN probes HEAD~1, ~2, ~4 … along
+  the first-parent line, then bisects the boundary where the test stops being runnable, so 4,000 commits
+  cost about twenty test runs. Read the bound with one caveat: far back, "red" can also mean the feature
+  the test exercises did not exist yet.
+- *when: one of N commits the test cannot run at.* Bisect narrowed the first bad commit to revisions where
+  the test cannot be evaluated (a skip to git bisect, never a verdict).
 - *spectrum lane: no per-test coverage.* `pytest-cov` is missing from the interpreter that runs the suite.
 
-## Two traps it already fell into, so you don't
+## Four traps it already fell into, so you don't
 
 **Stale bytecode across revisions.** `total * 2` and `total + 2` are the same length; two checkouts landed
 in the same second; the green commit's `.pyc` was reused at the bad commit, the bad commit passed, and
@@ -38,6 +42,20 @@ bisect blamed the commit on top. Every run at a revision now purges `__pycache__
 **Per-test coverage is silently wrong on Python 3.12+ with coverage 7.16** unless `COVERAGE_CORE=ctrace`:
 the default `sysmon` core credits a line only to the *first* test that ran it, so the spectrum lane sees
 nothing. The lane sets it. (Found by a peer session; see `research` notes.)
+
+**A src layout with an editable install tests HEAD at every revision.** Measured on click 2026-09-24: the
+bisect worktree at HEAD~300 imported HEAD's `src/click` through the venv's `.pth`, so every revision ran
+the same code and bisect could only ever confirm HEAD. Flat layouts were spared by pytest's rootdir
+insertion; src layouts were silently wrong. Every run at a revision now puts that checkout's own `src`
+and root first on `PYTHONPATH`.
+
+**The test that arrives with the fix is no oracle before its own commit.** The failing tests' files now
+travel into every revision by default. When the modern file cannot even be collected at an old revision
+(click's `tests/test_basic.py` imports `click._utils`, which did not exist before 2026), the step falls
+back to the revision's own file plus only the failing tests and what they reference, transitively, with
+imports and assignments guarded; an error raised *in the test file* under that fallback means the test
+could not be evaluated there, a skip, while a failure raised in the code under test is still a verdict.
+Carrying everything the old file lacked was tried first and shrank the reach on click from 2014 to 2026.
 
 ## Two laws, side by side — never blended
 
@@ -111,5 +129,49 @@ words moved, all of them import-only, the anchors intact, `IMPORT + LITERAL` at 
 replayed on the same held-out bits: 3 better, 0 worse, 5 unchanged. Live, the `def` line of a function
 that only survives the veto by running at import dropped from 4 to 3 while the guilty line held.
 
-Rich: the first run died on a suite timeout the harness did not catch (fixed); rerunning. Both numbers
-will be here when they land, whatever they are.
+Rich, 29 judged of 41 (the rerun with the suite timeout as a per-case outcome, before the pool was
+widened): guilty file first 19 of 29, in the top 5 24; guilty line first 2, in the top 5 7, in the top 10
+8, never a candidate 18. The candidate pool at that point was the max-Ochiai lines plus three packet
+files, so most of the 18 were never measured at all — the widening below is the answer to that, and the
+rich rerun on the wide pool is in progress.
+
+## Measured on the bugs that lived longest — blind
+
+The question was whether this locates or only looks things up. `examples/locate/bug_ages.py` dated the
+guilty lines of 174 real, tested fixes across click, rich, arrow and sortedcontainers by blame: 47 were
+under a month old when fixed, 54 under a year, 40 under three years, 28 under eight, and 5 older than
+eight years. `examples/locate/longlived.py` took the five oldest, checked out each fix's parent, brought
+in only the maintainers' regression test, and ran `locate` with nothing else: no `--good`, no hint of the
+file, the fix never seen. Ground truth is the old side of the fix's hunks. 2026-09-24:
+
+| fix | file | born | pool | guilty line's rank | WHEN |
+|---|---|---|---|---|---|
+| click `762c97ee` double-bracketed choices | core.py, 3,635 lines | 2014-04-24, the initial commit | 941 | **28** — the guilty branch's body at 6 | at least 2014-06-14 (HEAD~1024) |
+| click `70c673d3` help-option eagerness | core.py, 3,029 | 2014-05-07 | 832 | **11** | at least 2014-05-06 (HEAD~1024) |
+| click `2468b709` readline backspace | termui.py, 892 | 2014-05-29 | 151 | **20** | at least 2020-06-29 (HEAD~512) |
+| click `c326df95` close callbacks on exit | core.py, 3,007 | 2014-04-24 | 586 | not a candidate | at least 2014-05-06 |
+| arrow `b8a9df75` floats in humanize | locales.py, 5,269 | 2013-05-27 | 82 | **32** | at least 2020-09-19 (HEAD~64) |
+
+*Pool* is every line every failing test executed — the law's R0 keeps nothing else. Read it straight:
+
+- On four of five, a 900-to-5,000-line file becomes a reading list of 11 to 32 lines with the guilty line
+  on it. That is what the tool is worth on a bug nobody found for a decade: not the line, the page.
+- These lines carry one bit, `EF_ALL`. No frame (the failures are false assertions on rendered output),
+  no literal, no recency (the lines are older than the test), no bisect (as old as the repo). Within the
+  law's single-bit band the order is the spectrum's, so on the hardest real bugs the locator degrades to
+  a strict veto plus spectrum-based fault localisation. It does not pretend otherwise.
+- The fifth is a pure omission — the fix adds `self.close()` to `Context.exit` — and the failure is an
+  assertion after `runner.invoke` returns, so no lane reaches the function: the cause law cannot (the
+  missing line was never run) and the omission law's edge bits point at the runner's teardown, not at the
+  exit. A miss, and the kind of miss the omission law's held-out measurement is for.
+- WHEN's bound is honest and bounded by the test's reach, and one is a warning: at 2014-05-06 the
+  help-option test is red *because the feature did not exist yet*, which is the caveat above.
+
+Fixes that came out of this run, each one a body measurement, no law touched: the src-layout trap; the
+failing tests' files travelling by default; the minimal overlay; the age bound as a verdict; the WHY lane
+tracing the failing test through pytest (fixtures, parametrization, class tests) against its nearest
+passing neighbour when the assertion names no function — on these five it produced a divergence on four;
+and the candidate pool widened from the max-Ochiai lines to every `EF_ALL` line, each with its frame,
+literal and recency bits measured, because on the first run of `762c97ee` the guilty lines were never
+candidates at all. The adversarial battery (`examples/locate/adversarial.py`) held at 6.5/10 through all
+of it.

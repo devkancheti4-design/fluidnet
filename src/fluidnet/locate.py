@@ -26,6 +26,7 @@ import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from .cause import cause as _cause, word as _word
 from fluidfix.guard import _recent_lines, find_candidate_files
 from fluidfix.localize import build_packet
 from fluidfix.oracle import Oracle
@@ -42,7 +43,9 @@ class Finding:
     line: int
     source: str
     lanes: list = field(default_factory=list)
-    score: int = 0
+    score: int = 0                      # the old hand-weight sum; kept only so the law can be compared to it
+    rank: int = 0                       # THE CAUSE LAW's priority, 0..15, from the bits below; 0 = vetoed
+    ochiai: float = 0.0                 # tie-break within a law rank, never a rank on its own
     # the eight measured bits a ranking LAW would take (fluidfix/docs/laws/CAUSE_LAW_PROMPT.md): logged
     # for every candidate so a law can be judged on held-out real bugs without a rerun
     bits: dict = field(default_factory=lambda: {k: 0 for k in
@@ -58,6 +61,8 @@ class Located:
     why: dict | None = None
     notes: list = field(default_factory=list)
     seconds: float = 0.0
+    vetoed: int = 0                     # candidates the law ruled cannot be the cause (R0)
+    law_ranked: bool = True             # False when EF_ALL could not be measured, so the law could not rule
 
     def render(self) -> str:
         if self.status == "green":
@@ -68,7 +73,12 @@ class Located:
                (" …" if len(self.failing) > 3 else ""), "root cause, by lanes of evidence agreeing:"]
         for i, f in enumerate(self.where[:5], 1):
             out.append(f"  {i}. {f.file}:{f.line}   {f.source.strip()[:60]}")
-            out.append(f"       [{', '.join(f.lanes)}]  {len(f.lanes)} lane{'s' if len(f.lanes) != 1 else ''}")
+            out.append(f"       cause {f.rank:>2}/15  [{', '.join(f.lanes)}]")
+        if self.vetoed:
+            out.append(f"  ({self.vetoed} candidate{'s' if self.vetoed != 1 else ''} vetoed by the law: not run by "
+                       f"every failing test, not import-time)")
+        if not self.law_ranked:
+            out.append("  (the law could not rule — EF_ALL is unmeasured without per-test coverage; order is the old sum)")
         if self.when:
             w = self.when
             out.append(f"when: {w['commit'][:8]} \"{w['subject']}\" introduced the failure "
@@ -393,7 +403,8 @@ def why(root: str, python: str, out: str, failing: list[str]) -> dict:
 
 # ------------------------------------------------------------------ all three
 def locate(root: str, python: str = sys.executable, good: str | None = None, bisect: bool = True,
-           trace: bool = True, top_files: int = 3, extra_args: list | None = None) -> Located:
+           trace: bool = True, top_files: int = 3, extra_args: list | None = None,
+           progress=None) -> Located:
     """extra_args are passed to every pytest run (e.g. -W default, --deselect id): what an old revision
     needs to collect and to be green apart from the bug under study."""
     t0 = time.time()
@@ -402,6 +413,8 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
     o = Oracle(root, python=python)
     if extra_args:
         o.extra_args = list(o.extra_args) + list(extra_args)
+    tell = progress or (lambda stage, detail="": None)
+    tell("suite", "running the suite")
     try:
         fails, out = o.failing_output()
     except Exception as e:
@@ -410,8 +423,10 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
         return L
     L.status = "red"
     L.failing = _failing_ids(out)
+    tell("where", "reading the failure and the lines it executed")
     L.where, notes = where(o, out, top_files)
     L.notes += notes
+    tell("spectrum", "per-test coverage over the whole suite")
     try:
         sp = spectrum(root, python, L.failing, o.extra_args)
     except Exception as e:
@@ -428,6 +443,7 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
                 continue
             tag = f"spectrum {score:.2f} (ef {ef}, ep {ep})"
             if (rel, ln) in seen:
+                seen[(rel, ln)].ochiai = score
                 seen[(rel, ln)].lanes.append(tag); seen[(rel, ln)].score += 3 if score >= best - 1e-9 else 1
             elif score >= best - 1e-9:
                 try:
@@ -435,11 +451,12 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
                 except Exception:
                     src = ""
                 if src.strip() and not src.strip().startswith(("def ", "class ", "import ", "from ", "#")):
-                    f = Finding(rel, ln, src, ["executed", tag], 3)
+                    f = Finding(rel, ln, src, ["executed", tag], 3); f.ochiai = score
                     f.bits.update({"EF_ALL": int(ef == F), "EP_NONE": int(ep == 0)}); L.where.append(f)
     else:
         L.notes.append("spectrum lane: no per-test coverage (pytest-cov missing, or nothing measured)")
     if bisect and L.failing:
+        tell("when", "bisecting in a throwaway worktree")
         w, note = when(root, python, L.failing, good=good)
         L.when = w
         if note:
@@ -450,6 +467,7 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
                     if s <= f.line <= e:
                         f.lanes.append(f"when-commit {w['commit'][:7]}"); f.score += 2; f.bits["BISECT"] = 1
     if trace and L.failing:
+        tell("why", "tracing the failing test against a passing one")
         L.why = why(root, python, out, L.failing)
         le = (L.why or {}).get("last_executed")
         if le:
@@ -469,12 +487,28 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
                 hit.lanes.append("why-divergence"); hit.score += 2; hit.bits["DIVERGE"] = 1
             else:
                 f = Finding(d["file"], d["line"], "", ["why-divergence"], 2); f.bits["DIVERGE"] = 1; L.where.append(f)
-    L.where.sort(key=lambda f: (-f.score, -len(f.lanes), f.file, f.line))
+    # THE LAW RULES. The body has measured eight bits per candidate; the rank is cause(word). The old
+    # hand-weight sum stays in `score` only so the two can be compared on real bugs. `last-executed` is
+    # not one of the eight bits — it is proposed as a ninth for the next kernel — so it breaks ties only.
+    for f in L.where:
+        f.rank = _cause(_word(f.bits))
+    L.law_ranked = bool(sp) and any(f.bits.get("EF_ALL") or f.bits.get("IMPORT") for f in L.where)
+    if L.law_ranked:
+        live = [f for f in L.where if f.rank > 0]
+        L._vetoed_list = [f for f in L.where if f.rank == 0]
+        L.vetoed = len(L.where) - len(live)
+        live.sort(key=lambda f: (-f.rank, -f.ochiai, -int("last-executed" in f.lanes), f.file, f.line))
+        L.where = live
+    else:
+        L.notes.append("the law could not rule: EF_ALL is unmeasured (no per-test coverage); order is the old sum")
+        L.where.sort(key=lambda f: (-f.score, -len(f.lanes), f.file, f.line))
     L.seconds = round(time.time() - t0, 2)
+    tell("done", f"{L.status}")
     try:
         Path(root, ".fluidfix").mkdir(exist_ok=True)
         Path(root, ".fluidfix", "locate.json").write_text(json.dumps(
             {"status": L.status, "failing": L.failing, "where": [asdict(f) for f in L.where[:8]],
+             "vetoed": L.vetoed, "law_ranked": L.law_ranked,
              "when": L.when, "why": L.why, "notes": L.notes, "seconds": L.seconds,
              "at": time.strftime("%H:%M:%S")}, indent=1))
     except OSError:

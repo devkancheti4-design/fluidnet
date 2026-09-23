@@ -65,7 +65,7 @@ def main():
     BASE = ["-W", "default"]
     out, t0 = [], time.time()
     outp = HERE / f"real_{a.repo}.json"
-    print(f"\n{'#':>3} {'commit':11} {'file':28} {'truth':>7} {'line':>5} {'file':>5} {'base':>5} {'lanes':>5}  outcome", flush=True)
+    print(f"\n{'#':>3} {'commit':11} {'file':28} {'truth':>7} {'law':>5} {'old':>5} {'file':>5} {'base':>5} {'cause':>5}  outcome", flush=True)
     for i, r in enumerate(rows[: a.limit], 1):
         sha, rel = r["sha"], r["file"]
         rec = {"sha": sha[:10], "file": rel, "date": r["date"][:10], "subject": r["subject"]}
@@ -100,10 +100,16 @@ def main():
                         print(f"{i:>3} {sha[:10]:11} {rel[-28:]:28} {'':>7} {'':>5} {'':>5} {'':>5} {'':>5}  {rec['outcome']}", flush=True)
                         outp.write_text(json.dumps({"repo": a.repo, "rows": out}, indent=1)); continue
                     rec["status"] = L.status; rec["failing"] = L.failing
-                    W = L.where
+                    W = L.where                                          # the law's order (vetoed dropped)
                     files_in_order = list(dict.fromkeys(f.file for f in W))
                     rec["line_rank"] = mid_rank(W, lambda f: f.file == rel and f.line in truth)
                     rec["file_rank"] = (files_in_order.index(rel) + 1) if rel in files_in_order else None
+                    rec["law_ranked"] = L.law_ranked; rec["vetoed"] = L.vetoed
+                    # the OLD hand-weight order on the same candidates (vetoed included), for the comparison
+                    old = sorted(W + getattr(L, "_vetoed_list", []), key=lambda f: (-f.score, -len(f.lanes), f.file, f.line))
+                    rec["legacy_line_rank"] = mid_rank(old, lambda f: f.file == rel and f.line in truth) if old else None
+                    ofiles = list(dict.fromkeys(f.file for f in old))
+                    rec["legacy_file_rank"] = (ofiles.index(rel) + 1) if rel in ofiles else None
                     o = Oracle(str(work), python=py); o.extra_args = list(o.extra_args) + BASE + desel
                     try:
                         _f, fo = o.failing_output(); base_files = find_candidate_files(o, fo, evidence={})
@@ -111,24 +117,27 @@ def main():
                         rec["baseline_files"] = len(base_files)
                     except Exception:
                         rec["baseline_file_rank"] = None
-                    rec["top"] = [{"file": f.file, "line": f.line, "score": f.score, "lanes": f.lanes, "bits": f.bits,
-                                   "truth": f.file == rel and f.line in truth} for f in W[:15]]
+                    rec["candidates"] = [{"file": f.file, "line": f.line, "rank": f.rank, "ochiai": round(f.ochiai, 3),
+                                          "score": f.score, "lanes": f.lanes, "bits": f.bits,
+                                          "truth": f.file == rel and f.line in truth} for f in W]
+                    rec["top"] = rec["candidates"][:15]
                     rec["why"] = L.why; rec["notes"] = L.notes; rec["seconds"] = L.seconds
                     rec["outcome"] = "LOCATED" if rec["line_rank"] is not None else "MISSED"
         out.append(rec)
         best = rec.get("top", [{}])[0] if rec.get("top") else {}
         print(f"{i:>3} {sha[:10]:11} {rel[-28:]:28} {str(rec.get('truth_lines', ''))[:7]:>7} "
-              f"{str(rec.get('line_rank', '')):>5} {str(rec.get('file_rank', '')):>5} {str(rec.get('baseline_file_rank', '')):>5} "
-              f"{len(best.get('lanes', [])) if best else '':>5}  {rec['outcome']}", flush=True)
+              f"{str(rec.get('line_rank', '')):>5} {str(rec.get('legacy_line_rank', '')):>5} {str(rec.get('file_rank', '')):>5} "
+              f"{str(rec.get('baseline_file_rank', '')):>5} {str(best.get('rank', '')) if best else '':>5}  {rec['outcome']}", flush=True)
         outp.write_text(json.dumps({"repo": a.repo, "rows": out}, indent=1))
     sh(["git", "checkout", "-q", "-f", "HEAD"], cwd=work)
     judged = [o for o in out if o["outcome"] in ("LOCATED", "MISSED")]
     def top(k, key):
         return sum(1 for o in judged if o.get(key) is not None and o[key] <= k)
     print(f"\njudged {len(judged)} of {len(out)}")
+    print(f"  {'':14} {'law line':>9} {'old line':>9} {'law file':>9} {'old file':>9} {'count-base file':>16}")
     for k in (1, 5, 10):
-        print(f"  line rank <= {k:>2}: {top(k, 'line_rank'):>3}   file rank <= {k:>2}: {top(k, 'file_rank'):>3}   "
-              f"baseline file rank <= {k:>2}: {top(k, 'baseline_file_rank'):>3}")
+        print(f"  rank <= {k:>2}   {top(k, 'line_rank'):>9} {top(k, 'legacy_line_rank'):>9} {top(k, 'file_rank'):>9} "
+              f"{top(k, 'legacy_file_rank'):>9} {top(k, 'baseline_file_rank'):>16}")
     print(f"{round(time.time() - t0, 1)}s  REAL_DONE", flush=True)
 
 

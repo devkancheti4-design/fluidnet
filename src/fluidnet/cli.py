@@ -152,6 +152,11 @@ def cmd_float(a) -> int:
     return 0
 
 
+def cmd_scan(a) -> int:
+    from .scan import serve
+    return serve(a.workspace, port=a.port, python=a.python, bisect=not a.no_bisect)
+
+
 def cmd_doctor(a) -> int:
     ok = True
     try:
@@ -224,6 +229,11 @@ def main(argv=None) -> int:
                                              help="re-locate this often while red (default 15s)")
     fl.add_argument("--no-bisect", action="store_true"); fl.add_argument("--headless", action="store_true")
     fl.add_argument("--python"); fl.set_defaults(fn=cmd_float)
+
+    sc = sub.add_parser("scan", help="a workspace of project folders, scanned one after another, watched live "
+                                      "in the browser: the ladybug follows real scan events")
+    sc.add_argument("workspace"); sc.add_argument("--port", type=int, default=7777)
+    sc.add_argument("--no-bisect", action="store_true"); sc.add_argument("--python"); sc.set_defaults(fn=cmd_scan)
 
     sub.add_parser("mcp", help="serve gate / certify / propose over MCP (stdio); needs fluidnet[mcp]").set_defaults(fn=cmd_mcp)
 

@@ -426,6 +426,7 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
     tell("where", "reading the failure and the lines it executed")
     L.where, notes = where(o, out, top_files)
     L.notes += notes
+    tell("candidates", " ".join(dict.fromkeys(f.file for f in L.where)))
     tell("spectrum", "per-test coverage over the whole suite")
     try:
         sp = spectrum(root, python, L.failing, o.extra_args)

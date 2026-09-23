@@ -1,0 +1,1019 @@
+{
+ "repo": "rich",
+ "rows": [
+  {
+   "sha": "7ef2d05ca8",
+   "file": "rich/markdown.py",
+   "date": "2026-04-12",
+   "subject": "fix inline code in table cells",
+   "pre_existing_failures": 8,
+   "truth_lines": [
+    334,
+    335,
+    336
+   ],
+   "status": "red",
+   "failing": [
+    "tests/test_markdown.py::test_inline_code_in_table_cells"
+   ],
+   "line_rank": null,
+   "file_rank": 1,
+   "law_ranked": true,
+   "vetoed": 80,
+   "legacy_line_rank": null,
+   "legacy_file_rank": 1,
+   "baseline_file_rank": null,
+   "baseline_files": 8,
+   "candidates": [
+    {
+     "file": "rich/markdown.py",
+     "line": 482,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 492,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 493,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 494,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 495,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 12,
+     "rank": 2,
+     "ochiai": 0.316,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.32 (ef 1, ep 9)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 16,
+     "rank": 2,
+     "ochiai": 0.316,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.32 (ef 1, ep 9)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 3,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 6,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 10,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 14,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 1,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 5,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 9,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 13,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 17,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 21,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 25,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 29,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 33,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/terminal_theme.py",
+     "line": 29,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/terminal_theme.py",
+     "line": 33,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/terminal_theme.py",
+     "line": 34,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/terminal_theme.py",
+     "line": 58,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/terminal_theme.py",
+     "line": 59,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/terminal_theme.py",
+     "line": 82,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/terminal_theme.py",
+     "line": 83,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/terminal_theme.py",
+     "line": 106,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/terminal_theme.py",
+     "line": 107,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/terminal_theme.py",
+     "line": 131,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/terminal_theme.py",
+     "line": 132,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    }
+   ],
+   "top": [
+    {
+     "file": "rich/markdown.py",
+     "line": 482,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 492,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 493,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 494,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 495,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 12,
+     "rank": 2,
+     "ochiai": 0.316,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.32 (ef 1, ep 9)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 16,
+     "rank": 2,
+     "ochiai": 0.316,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.32 (ef 1, ep 9)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 3,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 6,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 10,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/_stack.py",
+     "line": 14,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 1,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 5,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 9,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/errors.py",
+     "line": 13,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    }
+   ],
+   "why": {
+    "note": "the assertion names no function to trace \u2014 the WHY lane has no evidence"
+   },
+   "notes": [],
+   "seconds": 53.51,
+   "outcome": "MISSED"
+  }
+ ]
+}

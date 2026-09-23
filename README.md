@@ -69,8 +69,15 @@ replay of 84 model-written and adversarial patches: [docs/BRAIN.md](docs/BRAIN.m
 fluidnet locate .        # WHERE (file, line), WHEN (the commit, by bisect), WHY (first divergence from a passing test)
 fluidnet float .         # the same as a floating icon that turns red and shows the root cause on click
 ```
-Confidence is the count of independent lanes agreeing, never a probability; a lane with no evidence says
-so. [docs/LOCATE.md](docs/LOCATE.md).
+The order is the CAUSE law's — a generated integer law over eight measured bits, no hand weights — and a
+lane with no evidence says so. [docs/LOCATE.md](docs/LOCATE.md).
+
+**8. A folder of projects? Scan them all, and watch.**
+```bash
+fluidnet scan ~/code          # every project folder under it; http://127.0.0.1:7777
+```
+A ladybug walks the file grid on the scan's real events — the suite, the files WHERE opened, the spectrum
+pass, the trace — and parks on the line the law ranked first. Nothing moves that did not happen.
 
 ## Using it efficiently
 
@@ -108,7 +115,7 @@ Every one of these happened this month.
 ## Test
 
 ```bash
-pytest -q        # 24 tests, each a real pytest project in a temp dir, nothing mocked
+pytest -q        # 33 tests, each a real pytest project in a temp dir, nothing mocked
 ```
 
 AGPL-3.0-or-later.

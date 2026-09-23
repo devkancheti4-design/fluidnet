@@ -157,7 +157,7 @@ def cmd_float(a) -> int:
         if py:
             badge = sp.Popen([py, str(Path(__file__).with_name("float_icon.py")), root])
             print(f"buggy is up (Tk via {py}) — bottom-right of your screen. click: crawl to the root cause · "
-                  "drag onto a Finder window: scan that folder · double-click: pick a folder · right-click: quit")
+                  "drag onto a Finder window: scan that folder · double-click: pick a folder · Ctrl-C here: quit")
         else:
             print("no Python with Tk found here; running headless — read .fluidfix/locate.json")
     def snapshot():
@@ -191,7 +191,14 @@ def cmd_float(a) -> int:
                 finally:
                     (fx / "locating").unlink(missing_ok=True)
             if badge is not None and badge.poll() is not None:
-                print("icon closed; stopping"); break
+                relaunch = getattr(a, "_relaunch", 0)
+                if relaunch < 5:
+                    a._relaunch = relaunch + 1
+                    print(f"[{_t.strftime('%H:%M:%S')}] the icon closed (exit {badge.returncode}); bringing it back — "
+                          f"see ~/.fluidnet/icon.log if it keeps happening")
+                    badge = sp.Popen([py, str(Path(__file__).with_name("float_icon.py")), root]); _t.sleep(1.5)
+                else:
+                    print("the icon closed five times; stopping — ~/.fluidnet/icon.log has the reason"); break
             _t.sleep(a.interval if red else 1.0)
     except KeyboardInterrupt:
         pass

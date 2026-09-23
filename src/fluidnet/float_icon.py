@@ -8,7 +8,7 @@ Drag it onto a Finder window and drop: that folder is scanned (the icon flies ho
 and it just moved. Double-click: pick a folder, for every other app. Click it when it is red: your file opens and the bug crawls down the lines the failing test actually
 executed — the law's rank in the gutter as it passes — and stops on the line the CAUSE law ranked first,
 naming which of the four lanes were strong and which weak. Nothing it walks is invented: the path is the
-locator's own evidence. Drag to move. Right-click to quit.
+locator's own evidence. Drag to move. Quit with Ctrl-C in the terminal that started it.
 
 usage: float_icon.py <root> [--selftest] [--crawl]     (--crawl opens the crawl at once)"""
 import json, os, sys, tkinter as tk
@@ -242,7 +242,15 @@ def pick(e):
 def press(e): drag.update(x=e.x, y=e.y, moved=False, hx=win.winfo_x(), hy=win.winfo_y())
 cv.bind("<ButtonPress-1>", press); cv.bind("<B1-Motion>", move); cv.bind("<ButtonRelease-1>", release)
 cv.bind("<Double-Button-1>", pick)
-cv.bind("<Button-2>", lambda e: win.destroy()); cv.bind("<Button-3>", lambda e: win.destroy())
+def explain(e):
+    toast("buggy: click = crawl · double-click = pick a folder · drag onto Finder = scan it · Ctrl-C in the terminal = quit", 3600)
+cv.bind("<Button-2>", explain); cv.bind("<Button-3>", explain)
+def _report(exc, val, tb):
+    import traceback
+    with open(os.path.join(HOME, "icon.log"), "a") as fh:
+        fh.write(time.strftime("%H:%M:%S ") + "".join(traceback.format_exception(exc, val, tb)))
+import time
+win.report_callback_exception = _report
 repaint()
 if CRAWL_NOW:
     win.after(300, lambda: open_crawl(read() or {}))

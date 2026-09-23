@@ -56,7 +56,8 @@ class Finding:
 @dataclass
 class Located:
     status: str = "green"                       # green | red | harness
-    failing: list = field(default_factory=list)
+    failing: list = field(default_factory=list)   # the failure this verdict is for (the suite stops at the first)
+    failing_all: list = field(default_factory=list)   # every failing test in the whole suite
     where: list = field(default_factory=list)   # Findings, best first
     when: dict | None = None
     why: dict | None = None
@@ -72,8 +73,14 @@ class Located:
             return "suite green — nothing to locate"
         if self.status == "harness":
             return "cannot judge: " + "; ".join(self.notes)
-        out = [f"RED — {len(self.failing)} failing: {', '.join(self.failing[:3])}" +
-               (" …" if len(self.failing) > 3 else ""), "root cause, by lanes of evidence agreeing:"]
+        n_all = max(len(self.failing_all), len(self.failing))
+        head = f"RED — {n_all} failing"
+        if n_all > len(self.failing):
+            head += (f" ({', '.join(self.failing_all[:4])}{' …' if n_all > 4 else ''}); this verdict is for the "
+                     f"first: {self.failing[0]} — locate again after fixing it, the others may be unrelated")
+        else:
+            head += f": {', '.join(self.failing[:3])}" + (" …" if len(self.failing) > 3 else "")
+        out = [head, "root cause, by lanes of evidence agreeing:"]
         for i, f in enumerate(self.where[:5], 1):
             out.append(f"  {i}. {f.file}:{f.line}   {f.source.strip()[:60]}")
             out.append(f"       cause {f.rank:>2}/15  [{', '.join(f.lanes)}]")
@@ -198,7 +205,8 @@ def spectrum(root: str, python: str, failing: list[str], extra_args: list | None
         cmd = [python, "-B", "-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider", "-W", "default",
                "--tb=no", "-rfE", "--cov-context=test", "--cov-report="] + \
               [f"--cov={d}" for d in _package_dirs(root)] + list(extra_args or [])
-        subprocess.run(cmd, cwd=root, capture_output=True, text=True, timeout=600, env=env)
+        run = subprocess.run(cmd, cwd=root, capture_output=True, text=True, timeout=600, env=env)
+        spectrum.last_failing = _failing_ids(run.stdout)          # every failure in the whole suite
         r = subprocess.run([python, "-c", _DUMP, cov, root], capture_output=True, text=True, timeout=120)
         if r.returncode != 0 or not r.stdout.strip():
             return {}
@@ -228,14 +236,21 @@ def _purge_pyc(tree: Path) -> None:
 _NO_PYC = {"PYTHONDONTWRITEBYTECODE": "1"}
 
 
-def _run_tests_at(worktree: Path, python: str, ids: list[str], timeout: int = 120) -> str:
+def _apply_overlay(tree: Path, overlay: dict | None) -> None:
+    """A regression test arrives WITH the fix; to use it as a bisect oracle further back it has to be
+    carried into each revision. Only test files travel — never the fix."""
+    for rel, content in (overlay or {}).items():
+        dst = tree / rel; dst.parent.mkdir(parents=True, exist_ok=True); dst.write_text(content, encoding="utf-8")
+
+
+def _run_tests_at(worktree: Path, python: str, ids: list[str], timeout: int = 120, overlay: dict | None = None) -> str:
     """green | red | unknown (the test cannot run at this revision).
 
     Bytecode is purged first and never written. Measured 2026-09-23: `total * 2` and `total + 2` are the
     same length, two checkouts landed in the same second, and the stale .pyc from the green commit made
     the bad commit pass — bisect blamed the commit on top. The same whole-second trap the C oracle fell
     into with make 3.81."""
-    _purge_pyc(worktree)
+    _purge_pyc(worktree); _apply_overlay(worktree, overlay)
     r = subprocess.run([python, "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--no-header", "-W", "default", *ids],
                        cwd=worktree, capture_output=True, text=True, timeout=timeout,
                        env={**os.environ, **_NO_PYC})
@@ -247,7 +262,7 @@ def _run_tests_at(worktree: Path, python: str, ids: list[str], timeout: int = 12
 
 
 def when(root: str, python: str, ids: list[str], good: str | None = None, lookback: int = 24,
-         budget_s: int = 300) -> tuple[dict | None, str | None]:
+         budget_s: int = 300, overlay: dict | None = None, extra_args: list | None = None) -> tuple[dict | None, str | None]:
     """Automated bisect in a throwaway worktree. Returns (result, note)."""
     t0 = time.time()
     try:
@@ -262,7 +277,7 @@ def when(root: str, python: str, ids: list[str], good: str | None = None, lookba
     subprocess.run(["git", "-C", root, "worktree", "add", "-q", "--detach", str(wt), head], capture_output=True)
     runs = 0
     try:
-        if _run_tests_at(wt, python, ids) != "red":
+        if _run_tests_at(wt, python, ids, overlay=overlay) != "red":
             return None, "the failing test is not red at HEAD in a clean worktree (uncommitted change?)"
         runs += 1
         if good is None:
@@ -272,7 +287,7 @@ def when(root: str, python: str, ids: list[str], good: str | None = None, lookba
                 if time.time() - t0 > budget_s:
                     return None, f"bisect budget ({budget_s}s) exhausted while searching for a green commit"
                 subprocess.run(["git", "-C", str(wt), "checkout", "-q", "--detach", sha], capture_output=True)
-                v = _run_tests_at(wt, python, ids); runs += 1
+                v = _run_tests_at(wt, python, ids, overlay=overlay); runs += 1
                 if v == "green":
                     good = sha; break
                 if v == "unknown":
@@ -280,8 +295,12 @@ def when(root: str, python: str, ids: list[str], good: str | None = None, lookba
             if good is None:
                 return None, f"no green commit within the last {lookback}; pass --good <rev>"
         subprocess.run(["git", "-C", str(wt), "bisect", "start", head, good], capture_output=True, check=True)
-        script = (f'find . -name __pycache__ -prune -exec rm -rf {{}} + ; '
-                  f'PYTHONDONTWRITEBYTECODE=1 {python} -B -m pytest -q -p no:cacheprovider --no-header -W default {" ".join(ids)}')
+        stage = Path(tempfile.mkdtemp(prefix="fn-overlay-"))
+        _apply_overlay(stage, overlay)
+        copy = f'cp -R "{stage}/." . ; ' if overlay else ""
+        script = (f'find . -name __pycache__ -prune -exec rm -rf {{}} + ; {copy}'
+                  f'PYTHONDONTWRITEBYTECODE=1 {python} -B -m pytest -q -p no:cacheprovider --no-header -W default '
+                  f'{" ".join(extra_args or [])} {" ".join(ids)}')
         r = subprocess.run(["git", "-C", str(wt), "bisect", "run", "sh", "-c", script],
                            capture_output=True, text=True, timeout=budget_s)
         m = re.search(r"([0-9a-f]{40}) is the first bad commit", r.stdout + r.stderr)
@@ -419,7 +438,7 @@ def why(root: str, python: str, out: str, failing: list[str]) -> dict:
 # ------------------------------------------------------------------ all three
 def locate(root: str, python: str = sys.executable, good: str | None = None, bisect: bool = True,
            trace: bool = True, top_files: int = 3, extra_args: list | None = None,
-           progress=None) -> Located:
+           progress=None, overlay: dict | None = None, lookback: int = 24, budget_s: int = 300) -> Located:
     """extra_args are passed to every pytest run (e.g. -W default, --deselect id): what an old revision
     needs to collect and to be green apart from the bug under study."""
     t0 = time.time()
@@ -447,6 +466,7 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
         sp = spectrum(root, python, L.failing, o.extra_args)
     except Exception as e:
         sp, _ = {}, L.notes.append(f"spectrum lane could not run ({type(e).__name__})")
+    L.failing_all = list(getattr(spectrum, "last_failing", []) or []) or list(L.failing)
     if sp:
         best = max(v[0] for v in sp.values())
         seen = {(f.file, f.line): f for f in L.where}
@@ -473,7 +493,8 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
         L.notes.append("spectrum lane: no per-test coverage (pytest-cov missing, or nothing measured)")
     if bisect and L.failing:
         tell("when", "bisecting in a throwaway worktree")
-        w, note = when(root, python, L.failing, good=good)
+        w, note = when(root, python, L.failing, good=good, lookback=lookback, budget_s=budget_s,
+                       overlay=overlay, extra_args=extra_args)
         L.when = w
         if note:
             L.notes.append(note)
@@ -579,7 +600,7 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
     try:
         Path(root, ".fluidfix").mkdir(exist_ok=True)
         Path(root, ".fluidfix", "locate.json").write_text(json.dumps(
-            {"status": L.status, "failing": L.failing, "where": [asdict(f) for f in L.where[:8]],
+            {"status": L.status, "failing": L.failing, "failing_all": L.failing_all, "where": [asdict(f) for f in L.where[:8]],
              "vetoed": L.vetoed, "law_ranked": L.law_ranked, "raised": L.raised,
              "omission": [asdict(f) for f in L.omission[:5]],
              # the WALK: every executed line of the top file in file order, each with the law's rank —

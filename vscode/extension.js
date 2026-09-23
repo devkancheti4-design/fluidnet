@@ -62,6 +62,10 @@ async function locate(folder, quiet) {
     }
   });
   if (L.vetoed) out.appendLine(`  (${L.vetoed} candidates vetoed by the law)`);
+  if (L.omission && L.omission.length) {
+    out.appendLine(`  if the fix is code that is MISSING — where it belongs, by the omission law:`);
+    L.omission.slice(0, 3).forEach((f, i) => out.appendLine(`    ${i + 1}. ${f.file}:${f.line}  omission ${f.rank}/15  [${f.lanes.join(", ")}]`));
+  }
   if (L.why) out.appendLine(`  why: ${L.why.note || (L.why.diverges_at ? `parts at ${L.why.diverges_at.file}:${L.why.diverges_at.line}` : "")}`);
   diags.set(dl.length ? dl : []);
   if (!quiet) await crawl();
@@ -102,6 +106,7 @@ async function crawl() {
   const hover = new vscode.MarkdownString(
     `**fluidnet — root cause by the cause law**  \n\`${walk.file}:${walk.winner}\` · **cause ${top ? top.rank : "?"}/15**  \n` +
     `strong: ${strong.join(", ") || "—"} · weak: ${weak.join(", ") || "—"}  \nevidence: ${top ? top.lanes.join(", ") : ""}` +
+    (L.omission && L.omission[0] ? `  \nif code is *missing*, it belongs at \`${L.omission[0].file}:${L.omission[0].line}\` — omission ${L.omission[0].rank}/15` : "") +
     (L.when ? `  \nwhen: \`${L.when.commit.slice(0, 8)}\` “${L.when.subject}”` : "") +
     (L.why ? `  \nwhy: ${L.why.note || (L.why.diverges_at ? `parts at ${L.why.diverges_at.file}:${L.why.diverges_at.line}` : "")}` : ""));
   ed.setDecorations(winDeco, [{ range: w, hoverMessage: hover,

@@ -120,6 +120,15 @@ def main():
                     rec["candidates"] = [{"file": f.file, "line": f.line, "rank": f.rank, "ochiai": round(f.ochiai, 3),
                                           "score": f.score, "lanes": f.lanes, "bits": f.bits,
                                           "truth": f.file == rel and f.line in truth} for f in W]
+                    # the OMISSION regime, beside: its candidates, bits, and the truth line's rank under it
+                    O = L.omission
+                    rec["raised"] = L.raised
+                    rec["omission_line_rank"] = mid_rank(O, lambda f: f.file == rel and f.line in truth)
+                    ofl = list(dict.fromkeys(f.file for f in O))
+                    rec["omission_file_rank"] = (ofl.index(rel) + 1) if rel in ofl else None
+                    rec["omission_candidates"] = [{"file": f.file, "line": f.line, "rank": f.rank, "lanes": f.lanes,
+                                                   "bits": f.bits, "truth": f.file == rel and f.line in truth} for f in O]
+                    rec["insertion"] = not any(m.strip() for m in r.get("minus", [])) if "minus" in r else None
                     rec["top"] = rec["candidates"][:15]
                     rec["why"] = L.why; rec["notes"] = L.notes; rec["seconds"] = L.seconds
                     rec["outcome"] = "LOCATED" if rec["line_rank"] is not None else "MISSED"
@@ -134,10 +143,12 @@ def main():
     def top(k, key):
         return sum(1 for o in judged if o.get(key) is not None and o[key] <= k)
     print(f"\njudged {len(judged)} of {len(out)}")
-    print(f"  {'':14} {'law line':>9} {'old line':>9} {'law file':>9} {'old file':>9} {'count-base file':>16}")
+    print(f"  {'':14} {'cause line':>10} {'old line':>9} {'omission line':>13} {'cause file':>10} {'old file':>9} {'count-base':>10}")
     for k in (1, 5, 10):
-        print(f"  rank <= {k:>2}   {top(k, 'line_rank'):>9} {top(k, 'legacy_line_rank'):>9} {top(k, 'file_rank'):>9} "
-              f"{top(k, 'legacy_file_rank'):>9} {top(k, 'baseline_file_rank'):>16}")
+        print(f"  rank <= {k:>2}   {top(k, 'line_rank'):>10} {top(k, 'legacy_line_rank'):>9} {top(k, 'omission_line_rank'):>13} "
+              f"{top(k, 'file_rank'):>10} {top(k, 'legacy_file_rank'):>9} {top(k, 'baseline_file_rank'):>10}")
+    raised = [o for o in judged if o.get("raised")]
+    print(f"  raised (exception, the omission regime): {len(raised)} of {len(judged)} judged")
     print(f"{round(time.time() - t0, 1)}s  REAL_DONE", flush=True)
 
 

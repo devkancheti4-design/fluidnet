@@ -39,12 +39,33 @@ bisect blamed the commit on top. Every run at a revision now purges `__pycache__
 the default `sysmon` core credits a line only to the *first* test that ran it, so the spectrum lane sees
 nothing. The lane sets it. (Found by a peer session; see `research` notes.)
 
+## Two laws, side by side — never blended
+
+**The CAUSE law** ranks the lines the failing test *executed*: four evidence lanes (TIME, SPECTRUM, WHY,
+SYMPTOM) graded strong or weak from eight measured bits, priority = the dense lexicographic rank of
+(strong, weak), 0..15, 0 a veto. `src/fluidnet/laws/cause.c`, generated; ported verbatim; its own
+`main()` mirrored in `tests/test_cause_law.py`.
+
+**The OMISSION law** answers the question the CAUSE law is blind to — the fix that *adds* code the old
+file never ran, a sixth of real fixes. Its eight bits are where the path stopped (`ENDED`, `NEXT`), where
+code belongs (`TARGET`, `HEAD`), what a passing run did instead (`PASSONLY`, `DIVERGE`), the failure's
+kind (`RAISED`, the regime: without an exception the priority is halved) and `RECENT`. Same rank
+principle, so the two are comparable; rank 15 is unreachable by structure. `laws/omission.c`, generated;
+`tests/test_omission_law.py`.
+
+`fluidnet locate` prints both verdicts: *root cause, by the cause law* and *if the fix is code that is
+MISSING — where it belongs, by the omission law*. A line can be a good answer to one and vetoed by the
+other; nothing picks between them by a constant. On the fixture where a None-guard is missing and the
+run dies with `AttributeError`, the omission law puts the line where the run ended at 14/15 — EDGE, SCOPE
+and CONTRAST all strong — which is exactly where the guard goes.
+
 ## The eight bits, for a law
 
-Every finding carries `bits`: `FRAME LITERAL RECENT BISECT DIVERGE EF_ALL EP_NONE IMPORT`. Today the
-lanes are combined by hand weights. A superoptimizer prompt for the law that should replace them —
-`fluidfix/docs/laws/CAUSE_LAW_PROMPT.md` — takes exactly these bits, and because they are logged per
-candidate on every run, that law can be judged on held-out real bugs without re-running anything.
+Every cause finding carries `bits`: `FRAME LITERAL RECENT BISECT DIVERGE EF_ALL EP_NONE IMPORT`; every
+omission finding carries `ENDED NEXT TARGET HEAD PASSONLY RAISED DIVERGE RECENT`. Both are logged per
+candidate on every real-bug run, so either table can be judged on held-out real fixes without re-running
+anything. The prompts that produced the laws: `fluidfix/docs/laws/CAUSE_LAW_PROMPT.md` and
+`docs/laws/OMISSION_LAW_PROMPT.md`.
 
 ## The floating icon
 

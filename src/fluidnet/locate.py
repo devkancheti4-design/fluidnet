@@ -27,6 +27,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from .cause import cause as _cause, word as _word
+from .omission import omission as _omission, word as _oword, BITS as _OBITS
 from fluidfix.guard import _recent_lines, find_candidate_files
 from fluidfix.localize import build_packet
 from fluidfix.oracle import Oracle
@@ -63,6 +64,8 @@ class Located:
     seconds: float = 0.0
     vetoed: int = 0                     # candidates the law ruled cannot be the cause (R0)
     law_ranked: bool = True             # False when EF_ALL could not be measured, so the law could not rule
+    omission: list = field(default_factory=list)   # Findings ranked by the OMISSION law: where missing code belongs
+    raised: bool = False                # the failure was an exception, not a false assertion
 
     def render(self) -> str:
         if self.status == "green":
@@ -79,6 +82,11 @@ class Located:
                        f"every failing test, not import-time)")
         if not self.law_ranked:
             out.append("  (the law could not rule — EF_ALL is unmeasured without per-test coverage; order is the old sum)")
+        if self.omission:
+            out.append("if the fix is code that is MISSING — where it belongs, by the omission law:")
+            for i, f in enumerate(self.omission[:3], 1):
+                out.append(f"  {i}. {f.file}:{f.line}   {f.source.strip()[:60]}")
+                out.append(f"       omission {f.rank:>2}/15  [{', '.join(f.lanes)}]")
         if self.when:
             w = self.when
             out.append(f"when: {w['commit'][:8]} \"{w['subject']}\" introduced the failure "
@@ -203,6 +211,8 @@ def spectrum(root: str, python: str, failing: list[str], extra_args: list | None
             ts = set(tests) - {"<import>"}; ef = len(ts & fail); ep = len(ts - fail)
             if ef:
                 out[(rel, int(ln))] = (ef / math.sqrt(F * (ef + ep)), ef, ep)
+            elif ep:
+                out[(rel, int(ln))] = (0.0, 0, ep)                    # PASSONLY: where the failing run should have gone
             elif "<import>" in tests and not ts:
                 out[(rel, int(ln))] = (0.0, 0, 0)                     # ran only at import: IMPORT bit
     return out
@@ -370,18 +380,23 @@ def why(root: str, python: str, out: str, failing: list[str]) -> dict:
                 return {"target": target, "sibling": sib, "note": f"could not trace {tid}: {r.stderr.strip()[-160:]}"}
             traces[tag] = json.load(open(outp))
     a = traces["fail"]["trace"]
+    executed = {}
+    for rel, ln, _loc in a:
+        executed.setdefault(rel, set()).add(ln)
+    executed = {k: sorted(v) for k, v in executed.items()}
     if not a:
-        return {"target": target, "sibling": sib, "note": "the failing test executed no source line"}
+        return {"target": target, "sibling": sib, "executed": executed,
+                "note": "the failing test executed no source line"}
     # where the failing run's path ENDED in source: for a fault of omission — the fix adds code the old
     # file never ran — this is the only line-level evidence there is, and it needs no sibling
     last = {"file": a[-1][0], "line": a[-1][1]}
     if not sib:
-        return {"target": target, "last_executed": last,
+        return {"target": target, "last_executed": last, "executed": executed,
                 "note": f"no passing test calls {target}() — the WHY lane has no divergence to show"}
     b = traces["pass"]["trace"]
     for i, (fa, pb) in enumerate(zip(a, b)):
         if (fa[0], fa[1]) != (pb[0], pb[1]):
-            return {"target": target, "sibling": sib, "kind": "control-flow", "last_executed": last,
+            return {"target": target, "sibling": sib, "kind": "control-flow", "last_executed": last, "executed": executed,
                     "diverges_at": {"file": fa[0], "line": fa[1]},
                     "detail": f"the passing run went to {pb[0]}:{pb[1]} here"}
     # same path: the first local whose value differs, past the point where the inputs are read
@@ -390,14 +405,14 @@ def why(root: str, python: str, out: str, failing: list[str]) -> dict:
         if diff and i > 0:
             k = next(iter(diff))
             return {"target": target, "sibling": sib, "kind": "same path, values differ from the inputs on",
-                    "last_executed": last, "diverges_at": {"file": fa[0], "line": fa[1]},
+                    "last_executed": last, "executed": executed, "diverges_at": {"file": fa[0], "line": fa[1]},
                     "detail": f"first differing local {k}: failing {diff[k][0]} vs passing {diff[k][1]}"}
     if len(a) != len(b):
         fa = a[min(len(a), len(b)) - 1] if len(a) > len(b) else b[len(a) - 1]
-        return {"target": target, "sibling": sib, "kind": "control-flow", "last_executed": last,
+        return {"target": target, "sibling": sib, "kind": "control-flow", "last_executed": last, "executed": executed,
                 "diverges_at": {"file": fa[0], "line": fa[1]},
                 "detail": "one run ended here and the other continued"}
-    return {"target": target, "sibling": sib, "last_executed": last,
+    return {"target": target, "sibling": sib, "last_executed": last, "executed": executed,
             "note": "identical paths and locals — the two tests do not distinguish the code"}
 
 
@@ -503,13 +518,70 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
     else:
         L.notes.append("the law could not rule: EF_ALL is unmeasured (no per-test coverage); order is the old sum")
         L.where.sort(key=lambda f: (-f.score, -len(f.lanes), f.file, f.line))
+    # ---------------------------------------------------------------- THE OMISSION REGIME, beside the cause
+    # Candidates are every code line of the candidate files with any reach evidence; the bits are measured
+    # from the failing run's own trace, the reversed spectrum, the failure's kind, and the file's syntax.
+    try:
+        L.raised = bool(re.search(r"^E\s+(?!AssertionError)\w*(?:Error|Exception|Exit)\b", out, re.M))
+        executed = (L.why or {}).get("executed") or {}
+        ended = (L.why or {}).get("last_executed") or {}
+        div = (L.why or {}).get("diverges_at") or {}
+        target = (L.why or {}).get("target")
+        passonly = {(rel, ln) for (rel, ln), (sc, ef, ep) in (sp or {}).items() if ef == 0 and ep > 0}
+        files = list(dict.fromkeys([f.file for f in L.where] + list(executed) + [ended.get("file")]))
+        files = [f for f in files if f and f.endswith(".py")][:top_files + 1]
+        om = []
+        for rel in files:
+            try:
+                src = Path(root, rel).read_text(encoding="utf-8")
+            except OSError:
+                continue
+            lines = src.split("\n")
+            try:
+                tree = ast.parse(src)
+            except SyntaxError:
+                continue
+            heads, target_lines = set(), set()
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.If, ast.Try,
+                                     ast.ExceptHandler, ast.Return, ast.Raise, ast.With, ast.For, ast.While)):
+                    heads.add(node.lineno)
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and target and node.name == target:
+                    target_lines |= set(range(node.lineno, (node.end_lineno or node.lineno) + 1))
+            frames = _frames_in(out, rel)
+            if frames:                                              # the frame that raised: its enclosing def
+                fl = max(frames)
+                for node in ast.walk(tree):
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and \
+                            node.lineno <= fl <= (node.end_lineno or node.lineno):
+                        target_lines |= set(range(node.lineno, (node.end_lineno or node.lineno) + 1))
+            ex = set(executed.get(rel, []))
+            recent = _recent_lines(root, rel)
+            for n, text in enumerate(lines, 1):
+                t = text.strip()
+                if not t or t.startswith("#"):
+                    continue
+                b = {"ENDED": int(ended.get("file") == rel and ended.get("line") == n),
+                     "NEXT": int(n not in ex and (n - 1) in ex),
+                     "TARGET": int(n in target_lines), "HEAD": int(n in heads),
+                     "PASSONLY": int((rel, n) in passonly), "RAISED": int(L.raised),
+                     "DIVERGE": int(div.get("file") == rel and div.get("line") == n),
+                     "RECENT": int(n in recent)}
+                r = _omission(_oword(b))
+                if r > 0:
+                    f = Finding(rel, n, text, [k for k in _OBITS if b[k]], 0); f.bits = b; f.rank = r; om.append(f)
+        om.sort(key=lambda f: (-f.rank, f.file, f.line))
+        L.omission = om[:8]
+    except Exception as e:
+        L.notes.append(f"omission lane could not run ({type(e).__name__}: {str(e)[:80]})")
     L.seconds = round(time.time() - t0, 2)
     tell("done", f"{L.status}")
     try:
         Path(root, ".fluidfix").mkdir(exist_ok=True)
         Path(root, ".fluidfix", "locate.json").write_text(json.dumps(
             {"status": L.status, "failing": L.failing, "where": [asdict(f) for f in L.where[:8]],
-             "vetoed": L.vetoed, "law_ranked": L.law_ranked,
+             "vetoed": L.vetoed, "law_ranked": L.law_ranked, "raised": L.raised,
+             "omission": [asdict(f) for f in L.omission[:5]],
              # the WALK: every executed line of the top file in file order, each with the law's rank —
              # the path a pixel bug can crawl, honestly, ending where the law ruled
              "walk": ({"file": L.where[0].file, "winner": L.where[0].line,

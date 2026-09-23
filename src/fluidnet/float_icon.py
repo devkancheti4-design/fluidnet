@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""The pixel bug. Standard-library Tk only — it reads <root>/.fluidfix/locate.json, which `fluidnet float`
+"""buggy — the pixel bug. Standard-library Tk only — it reads <root>/.fluidfix/locate.json, which `fluidnet float`
 keeps fresh, and imports nothing from fluidnet.
 
     grey    suite green, or no data        amber   locating        red, twitching   suite red
@@ -106,7 +106,7 @@ def scan_folder(path):
         return
     open(TARGET_FILE, "w").write(path)
     open(SCAN_NOW, "w").write("1")
-    toast(f"scanning {os.path.basename(path) or path} …")
+    toast(f"buggy: scanning {os.path.basename(path) or path} …")
 
 
 def repaint():

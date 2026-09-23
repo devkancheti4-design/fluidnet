@@ -30,7 +30,7 @@ side: the executed line that is *wrong*, and — for the common case where the f
 exist yet — where the *missing* code belongs. Each candidate carries a rank out of 15 and the evidence
 behind it; a lane with nothing to say, says so.
 
-- **The pixel bug** — `fluidnet float <repo>`: a sprite on your screen that twitches while the suite is
+- **buggy, the pixel bug** — `fluidnet buggy <repo>`: a sprite on your screen that twitches while the suite is
   red. Click it and it crawls your file down the executed lines and parks on the answer. Drop it on a
   Finder window to scan that folder; double-click to pick one.
 - **A folder of projects** — `fluidnet scan ~/code`: every project scanned in turn, watched live on a
@@ -77,7 +77,7 @@ fluidnet teach > rules.py                          # the second time you fix a s
 fluidfix guard . --dictionary rules.py --commit    # from now on it owns that shape, with proof
 fluidnet certify . --file pkg/x.py --patch fix.py  # someone hands you a fix: certify before you trust it
 fluidnet descend pkg/x.py --test 'assert …'        # two bugs in one file
-fluidnet float .   ·   fluidnet scan ~/code        # the pixel bug; a folder of projects
+fluidnet buggy .   ·   fluidnet scan ~/code        # buggy, the pixel bug; a folder of projects
 ```
 
 ## Using it efficiently

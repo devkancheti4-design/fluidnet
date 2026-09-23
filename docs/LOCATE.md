@@ -6,7 +6,7 @@ independent lanes that agree on it**, and a lane with no evidence says so instea
 ```
 fluidnet locate .                 # WHERE + WHEN + WHY, prints the ranking, writes .fluidfix/locate.json
 fluidnet locate . --no-bisect     # skip WHEN (fast); --good <rev> to name a known-green revision
-fluidnet float .                  # a floating icon: grey = green, red = red, click for the root cause
+fluidnet buggy .                  # buggy, the pixel bug: grey = green, red = red, click for the root cause
 ```
 
 | lane | what it measures | evidence it produces |
@@ -67,9 +67,9 @@ candidate on every real-bug run, so either table can be judged on held-out real 
 anything. The prompts that produced the laws: `fluidfix/docs/laws/CAUSE_LAW_PROMPT.md` and
 `docs/laws/OMISSION_LAW_PROMPT.md`.
 
-## The floating icon
+## buggy, the pixel bug
 
-`fluidnet float <root>` keeps `locate.json` fresh — on every source change, and every `--interval` seconds
+`fluidnet buggy <root>` (alias `float`) keeps `locate.json` fresh — on every source change, and every `--interval` seconds
 while red — and shows it as a small always-on-top badge. The badge is standard-library Tk and imports
 nothing from fluidnet, so it runs under whichever Python here has Tk (the venv's Homebrew build has
 none; python.org's and `/usr/bin/python3` do; `float` finds one). Drag to move, click to expand, right-click

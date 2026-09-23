@@ -156,7 +156,8 @@ def cmd_float(a) -> int:
         py = _tk_python()
         if py:
             badge = sp.Popen([py, str(Path(__file__).with_name("float_icon.py")), root])
-            print(f"floating icon up (Tk via {py}); click it for the root cause, right-click to quit")
+            print(f"buggy is up (Tk via {py}) — bottom-right of your screen. click: crawl to the root cause · "
+                  "drag onto a Finder window: scan that folder · double-click: pick a folder · right-click: quit")
         else:
             print("no Python with Tk found here; running headless — read .fluidfix/locate.json")
     def snapshot():
@@ -278,12 +279,14 @@ def main(argv=None) -> int:
     vi.add_argument("root"); vi.add_argument("--fluidnet", default="fluidnet", help="how the task should invoke fluidnet")
     vi.set_defaults(fn=cmd_vscode_init)
 
-    fl = sub.add_parser("float", help="a floating icon: grey green, red red, click for the root cause; keeps "
-                                      "locate.json fresh on every source change")
-    fl.add_argument("root"); fl.add_argument("--interval", type=float, default=15.0,
-                                             help="re-locate this often while red (default 15s)")
-    fl.add_argument("--no-bisect", action="store_true"); fl.add_argument("--headless", action="store_true")
-    fl.add_argument("--python"); fl.set_defaults(fn=cmd_float)
+    for name in ("buggy", "float"):
+        fl = sub.add_parser(name, help="buggy — the pixel bug: twitches while the suite is red; click it and it "
+                                       "crawls your file to the root cause; drop it on a Finder window to scan "
+                                       "that folder" + ("" if name == "buggy" else " (alias of buggy)"))
+        fl.add_argument("root", nargs="?", default=".")
+        fl.add_argument("--interval", type=float, default=15.0, help="re-locate this often while red (default 15s)")
+        fl.add_argument("--no-bisect", action="store_true"); fl.add_argument("--headless", action="store_true")
+        fl.add_argument("--python"); fl.set_defaults(fn=cmd_float)
 
     sc = sub.add_parser("scan", help="a workspace of project folders, scanned one after another, watched live "
                                       "in the browser: the ladybug follows real scan events")

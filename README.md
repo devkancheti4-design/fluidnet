@@ -116,7 +116,7 @@ Every one of these happened this month.
 ## Test
 
 ```bash
-pytest -q        # 41 tests, each a real pytest project in a temp dir, nothing mocked
+pytest -q        # 42 tests, each a real pytest project in a temp dir, nothing mocked
 ```
 
 AGPL-3.0-or-later.

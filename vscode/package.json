@@ -2,7 +2,7 @@
   "name": "fluidnet",
   "displayName": "fluidnet — the bug crawls to the root cause",
   "description": "A pixel bug in the status bar that twitches when your suite is red; a command that locates the root cause by evidence and a generated law; the bug crawls your executed lines in the editor and stops where the law ruled. No model.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "devkancheti4-design",
   "license": "AGPL-3.0-or-later",
   "repository": { "type": "git", "url": "https://github.com/devkancheti4-design/fluidnet" },

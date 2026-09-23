@@ -11,4 +11,4 @@ folder**. Saving a `.py` file locates again (`fluidnet.onSave`).
 Needs `fluidnet` installed (`pip install fluidnet` from the repository); set `fluidnet.path` to a venv's
 `bin/fluidnet` if it is not on PATH. The target must have a `pytest` suite and `pytest-cov`.
 
-Install from a .vsix: `code --install-extension fluidnet-0.1.0.vsix` (also `cursor`, `windsurf`).
+Install from a .vsix: `code --install-extension fluidnet-0.2.0.vsix` (also `cursor`, `windsurf`).

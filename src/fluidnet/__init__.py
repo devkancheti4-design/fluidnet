@@ -5,4 +5,4 @@ fluidfix is the guard inside each net: six integer laws decide, the target's own
 property proves. fluidnet is what sits around many of them: an overseer that routes a failing suite to
 the net whose taught shapes match, descent for more than one fault at a time, and certification of a fix
 nobody here wrote — the recursive part: the same gates that check a net's repair check anyone's."""
-__version__ = "0.1.0"
+__version__ = "0.2.0"

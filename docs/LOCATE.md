@@ -106,6 +106,10 @@ In the 8 reachable cases every guilty line carried the same word, `EF_ALL` alone
 36 times of 46 was an import-time line containing an assertion literal. That is a table defect with a
 stated principle — an unmeasured lane is silent, not weak — and the fix, replayed on the logged bits
 before any kernel was asked for, is 3 better, 0 worse, 5 unchanged: `docs/laws/CAUSE_LAW_REVISION_PROMPT.md`.
+**Revision 2 is the law that ships** (`laws/cause.c`; revision 1 kept as `laws/cause_r1.c`): 16 of 144
+words moved, all of them import-only, the anchors intact, `IMPORT + LITERAL` at 2 not 3. The real kernel
+replayed on the same held-out bits: 3 better, 0 worse, 5 unchanged. Live, the `def` line of a function
+that only survives the veto by running at import dropped from 4 to 3 while the guilty line held.
 
 Rich: the first run died on a suite timeout the harness did not catch (fixed); rerunning. Both numbers
 will be here when they land, whatever they are.

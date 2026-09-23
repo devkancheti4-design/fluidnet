@@ -1,6 +1,6 @@
 [project]
 name = "fluidnet"
-version = "0.1.0"
+version = "0.2.0"
 description = "Teach it a bug once and it repairs every future one — with a proof, not a guess. Many small nets, one overseer; fluidfix is the guard inside each net."
 readme = "README.md"
 requires-python = ">=3.11"

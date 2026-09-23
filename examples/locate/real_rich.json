@@ -684,6 +684,168 @@
      "truth": false
     }
    ],
+   "raised": false,
+   "omission_line_rank": null,
+   "omission_file_rank": 1,
+   "omission_candidates": [
+    {
+     "file": "rich/markdown.py",
+     "line": 48,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 74,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 79,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 97,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 98,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 101,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 104,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "rich/markdown.py",
+     "line": 115,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    }
+   ],
+   "insertion": false,
    "top": [
     {
      "file": "rich/markdown.py",
@@ -1012,7 +1174,7 @@
     "note": "the assertion names no function to trace \u2014 the WHY lane has no evidence"
    },
    "notes": [],
-   "seconds": 53.51,
+   "seconds": 172.78,
    "outcome": "MISSED"
   }
  ]

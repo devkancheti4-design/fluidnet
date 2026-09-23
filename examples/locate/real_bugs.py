@@ -41,13 +41,16 @@ def truth_lines(work, sha, rel):
     return sorted(out)
 
 
-def mid_rank(findings, pred):
-    """1-based rank of the first finding satisfying pred, with ties given the group's mid-rank."""
+def mid_rank(findings, pred, key=lambda f: (f.rank, f.ochiai)):
+    """1-based rank of the first finding satisfying pred, with ties given the group's mid-rank. A tie is
+    two findings the PRESENTED order cannot tell apart: the law's rank and the spectrum tie-break for the
+    law's order, the hand-weight score for the old order. (Grouping the law's order by the old score
+    reported a rank-1 line as 42.5 once the pool was widened — 2026-09-24.)"""
     if not findings:
         return None
     for i, f in enumerate(findings):
         if pred(f):
-            group = [j for j, g in enumerate(findings) if g.score == f.score]
+            group = [j for j, g in enumerate(findings) if key(g) == key(f)]
             return round((group[0] + group[-1]) / 2 + 1, 1)
     return None
 
@@ -119,7 +122,7 @@ def main():
                     rec["law_ranked"] = L.law_ranked; rec["vetoed"] = L.vetoed
                     # the OLD hand-weight order on the same candidates (vetoed included), for the comparison
                     old = sorted(W + getattr(L, "_vetoed_list", []), key=lambda f: (-f.score, -len(f.lanes), f.file, f.line))
-                    rec["legacy_line_rank"] = mid_rank(old, lambda f: f.file == rel and f.line in truth) if old else None
+                    rec["legacy_line_rank"] = mid_rank(old, lambda f: f.file == rel and f.line in truth, key=lambda f: f.score) if old else None
                     ofiles = list(dict.fromkeys(f.file for f in old))
                     rec["legacy_file_rank"] = (ofiles.index(rel) + 1) if rel in ofiles else None
                     o = Oracle(str(work), python=py); o.extra_args = list(o.extra_args) + BASE + desel

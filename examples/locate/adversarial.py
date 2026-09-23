@@ -24,10 +24,14 @@ def repo(files: dict, commits=None):
     return root
 
 def rank_of(findings, file, lines):
+    """Rank in the PRESENTED order (the law's rank, then the spectrum tie-break), ties given the group's
+    mid-rank; the second value is the size of the law's own band, i.e. how many lines the law alone could
+    not tell apart from the guilty one."""
     for i, f in enumerate(findings):
         if f.file == file and f.line in lines:
-            grp = [j for j, x in enumerate(findings) if x.rank == f.rank]
-            return (grp[0] + grp[-1]) / 2 + 1, len(grp)
+            grp = [j for j, x in enumerate(findings) if (x.rank, x.ochiai) == (f.rank, f.ochiai)]
+            band = sum(1 for x in findings if x.rank == f.rank)
+            return (grp[0] + grp[-1]) / 2 + 1, band
     return None, 0
 
 CASES = []

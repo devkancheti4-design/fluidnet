@@ -129,11 +129,27 @@ words moved, all of them import-only, the anchors intact, `IMPORT + LITERAL` at 
 replayed on the same held-out bits: 3 better, 0 worse, 5 unchanged. Live, the `def` line of a function
 that only survives the veto by running at import dropped from 4 to 3 while the guilty line held.
 
-Rich, 29 judged of 41 (the rerun with the suite timeout as a per-case outcome, before the pool was
-widened): guilty file first 19 of 29, in the top 5 24; guilty line first 2, in the top 5 7, in the top 10
-8, never a candidate 18. The candidate pool at that point was the max-Ochiai lines plus three packet
-files, so most of the 18 were never measured at all — the widening below is the answer to that, and the
-rich rerun on the wide pool is in progress.
+Rich, 2026-09-24, before and after the candidate pool was widened (see the section below). Ranks are in
+the order the tool presents — the law's rank, then the spectrum tie-break — with ties given their
+mid-rank. (The harness used to group ties by the old hand-weight score, which reported a rank-1 line as
+42.5 once the pool grew; `examples/locate/real_rich.json` carries both numbers.)
+
+| | narrow pool, 29 judged | **wide pool, 35 judged** | old hand sum, wide |
+|---|---|---|---|
+| guilty **file** first | 19 | **21** | 20 |
+| guilty file in top 5 | 24 | **33** | 30 |
+| guilty **line** first | 3 | **3** | 2 |
+| guilty line in top 5 | 6 | **8** | 5 |
+| guilty line in top 10 | 8 | **12** | 5 |
+| guilty line never a candidate | 18 | **7** | — |
+
+The widening moved eleven guilty lines from "never measured" to "ranked", and the top did not pay for it:
+the law's order beats the old hand sum at every depth. The seven still missing are omissions the failing
+test never ran. In the pool, the guilty line's word is `EF_ALL` alone in 53 of 76 cases, and what
+outranks it is overwhelmingly other `EF_ALL`-only lines ordered by the spectrum: on rich, as on the
+long-lived bugs below, the bits rarely separate the guilty line and the spectrum does the ordering.
+Clearing `RECENT` in a replay over the logged bits changes one case. The omission law reaches the
+guilty line in the top 5 twice of 35.
 
 ## Measured on the bugs that lived longest — blind
 
@@ -174,4 +190,5 @@ passing neighbour when the assertion names no function — on these five it prod
 and the candidate pool widened from the max-Ochiai lines to every `EF_ALL` line, each with its frame,
 literal and recency bits measured, because on the first run of `762c97ee` the guilty lines were never
 candidates at all. The adversarial battery (`examples/locate/adversarial.py`) held at 6.5/10 through all
-of it.
+of it; its one WEAK case, the 2,000-line file of coverage-identical lines, sits at 218.5 in the presented
+order inside a band of 84 lines the law alone cannot tell apart.

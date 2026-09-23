@@ -510,6 +510,12 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
         Path(root, ".fluidfix", "locate.json").write_text(json.dumps(
             {"status": L.status, "failing": L.failing, "where": [asdict(f) for f in L.where[:8]],
              "vetoed": L.vetoed, "law_ranked": L.law_ranked,
+             # the WALK: every executed line of the top file in file order, each with the law's rank —
+             # the path a pixel bug can crawl, honestly, ending where the law ruled
+             "walk": ({"file": L.where[0].file, "winner": L.where[0].line,
+                       "lines": sorted(({"line": f.line, "rank": f.rank, "lanes": f.lanes, "bits": f.bits}
+                                        for f in L.where + getattr(L, "_vetoed_list", []) if f.file == L.where[0].file),
+                                       key=lambda d: d["line"])} if L.where else None),
              "when": L.when, "why": L.why, "notes": L.notes, "seconds": L.seconds,
              "at": time.strftime("%H:%M:%S")}, indent=1))
     except OSError:

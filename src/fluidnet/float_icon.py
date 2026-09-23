@@ -100,9 +100,17 @@ def finder_folder_at(x, y):
         return ""
 
 
+def is_project(path):
+    return os.path.isdir(os.path.join(path, "tests")) or os.path.isfile(os.path.join(path, "pyproject.toml")) \
+        or os.path.isfile(os.path.join(path, "pytest.ini")) or os.path.isfile(os.path.join(path, "setup.cfg"))
+
+
 def scan_folder(path):
     path = path.rstrip("/")
     if not os.path.isdir(path):
+        return
+    if not is_project(path):
+        toast(f"buggy: {os.path.basename(path) or path} has no tests/ or pyproject — nothing to run", 3200)
         return
     open(TARGET_FILE, "w").write(path)
     open(SCAN_NOW, "w").write("1")

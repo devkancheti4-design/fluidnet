@@ -10427,6 +10427,4184 @@
    "notes": [],
    "seconds": 38.85,
    "outcome": "LOCATED"
+  },
+  {
+   "sha": "7d05a59b9d",
+   "file": "src/click/core.py",
+   "date": "2026-05-21",
+   "subject": "Fix get_parameter_source() during type conversion and eager callbacks",
+   "pre_existing_failures": 1,
+   "truth_lines": [
+    2611,
+    2612,
+    2657,
+    2661,
+    2662,
+    2663,
+    2664
+   ],
+   "status": "red",
+   "failing": [
+    "tests/test_defaults.py::test_parameter_source_during_paramtype_convert"
+   ],
+   "line_rank": null,
+   "file_rank": null,
+   "law_ranked": true,
+   "vetoed": 2,
+   "legacy_line_rank": null,
+   "legacy_file_rank": null,
+   "baseline_file_rank": null,
+   "baseline_files": 8,
+   "candidates": [
+    {
+     "file": "src/click/types.py",
+     "line": 56,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 3,
+     "lanes": [
+      "literal",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 136,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 3,
+     "lanes": [
+      "literal",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 635,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 3,
+     "lanes": [
+      "literal",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 683,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 3,
+     "lanes": [
+      "literal",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 697,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "literal"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 698,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "literal"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_compat.py",
+     "line": 601,
+     "rank": 2,
+     "ochiai": 0.103,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.10 (ef 1, ep 93)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 77,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 80,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 91,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 102,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 113,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 126,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 7,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 15,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 16,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 18,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 22,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 25,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 32,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 35,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 55,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 69,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 174,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 186,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 190,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 218,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 244,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 284,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 309,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 329,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 347,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 381,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 395,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 455,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 458,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 461,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 490,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 535,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 591,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 605,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 614,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 646,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 730,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 758,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 780,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 836,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 843,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 916,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 993,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 1127,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 1130,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 1137,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 1141,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 1294,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    }
+   ],
+   "raised": false,
+   "omission_line_rank": null,
+   "omission_file_rank": null,
+   "omission_candidates": [
+    {
+     "file": "src/click/_compat.py",
+     "line": 27,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_compat.py",
+     "line": 28,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_compat.py",
+     "line": 29,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_compat.py",
+     "line": 31,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_compat.py",
+     "line": 32,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_compat.py",
+     "line": 33,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_compat.py",
+     "line": 34,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_compat.py",
+     "line": 35,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    }
+   ],
+   "insertion": false,
+   "top": [
+    {
+     "file": "src/click/types.py",
+     "line": 56,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 3,
+     "lanes": [
+      "literal",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 136,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 3,
+     "lanes": [
+      "literal",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 635,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 3,
+     "lanes": [
+      "literal",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 683,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 3,
+     "lanes": [
+      "literal",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 697,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "literal"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/types.py",
+     "line": 698,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "literal"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_compat.py",
+     "line": 601,
+     "rank": 2,
+     "ochiai": 0.103,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.10 (ef 1, ep 93)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 77,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 80,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 91,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 102,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 113,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 126,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 7,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 15,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    }
+   ],
+   "why": {
+    "target": "split",
+    "sibling": ".venv/lib/python3.11/site-packages/setuptools/tests/test_dist.py::test_dist_fetch_build_egg",
+    "note": "could not trace .venv/lib/python3.11/site-packages/setuptools/tests/test_dist.py::test_dist_fetch_build_egg: msg.format(name))\nTypeError: the 'package' argument is required to perform a relative import for '.venv.lib.python3.11.site-packages.setuptools.tests.test_dist'"
+   },
+   "notes": [],
+   "seconds": 143.78,
+   "outcome": "MISSED"
+  },
+  {
+   "sha": "d15f3c23a1",
+   "file": "src/click/_compat.py",
+   "date": "2026-05-18",
+   "subject": "fix: Skip flaky pager test on macOS with free-threaded Python 3.14t",
+   "pre_existing_failures": 1,
+   "outcome": "SKIP-SUITE-ERROR"
+  },
+  {
+   "sha": "0551bf5358",
+   "file": "src/click/formatting.py",
+   "date": "2026-05-16",
+   "subject": "Fix `HelpFormatter.write_usage` producing spurious characters",
+   "pre_existing_failures": 1,
+   "truth_lines": [
+    166,
+    167
+   ],
+   "status": "red",
+   "failing": [
+    "tests/test_formatting.py::test_help_formatter_write_usage[empty-args-default-prefix]"
+   ],
+   "line_rank": 9.0,
+   "file_rank": 3,
+   "law_ranked": true,
+   "vetoed": 21,
+   "legacy_line_rank": 10.0,
+   "legacy_file_rank": 1,
+   "baseline_file_rank": 3,
+   "baseline_files": 8,
+   "candidates": [
+    {
+     "file": "src/click/__init__.py",
+     "line": 36,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "recent"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 46,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "recent"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 22,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 25,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 32,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 35,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 284,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 3,
+     "lanes": [
+      "literal",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 136,
+     "rank": 2,
+     "ochiai": 0.408,
+     "score": 4,
+     "lanes": [
+      "executed",
+      "spectrum 0.41 (ef 1, ep 5)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 169,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 214)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 164,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 216)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 165,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 216)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 167,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 216)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": true
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 130,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 217)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 138,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 217)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 69,
+     "rank": 2,
+     "ochiai": 0.067,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 220)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 77,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 80,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 91,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 102,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 113,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 126,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 7,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 15,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 16,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 18,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 14,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 141,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 145,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 149,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 153,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 191,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 195,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 200,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 261,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 276,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 289,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    }
+   ],
+   "raised": false,
+   "omission_line_rank": null,
+   "omission_file_rank": 1,
+   "omission_candidates": [
+    {
+     "file": "src/click/formatting.py",
+     "line": 284,
+     "rank": 3,
+     "lanes": [
+      "TARGET",
+      "HEAD"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 1,
+      "HEAD": 1,
+      "PASSONLY": 0,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 286,
+     "rank": 3,
+     "lanes": [
+      "TARGET",
+      "HEAD"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 1,
+      "HEAD": 1,
+      "PASSONLY": 0,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 19,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 15,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 17,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 18,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 19,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 21,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    }
+   ],
+   "insertion": true,
+   "top": [
+    {
+     "file": "src/click/__init__.py",
+     "line": 36,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "recent"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 46,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "recent"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 22,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 25,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 32,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 35,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 284,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 3,
+     "lanes": [
+      "literal",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 136,
+     "rank": 2,
+     "ochiai": 0.408,
+     "score": 4,
+     "lanes": [
+      "executed",
+      "spectrum 0.41 (ef 1, ep 5)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 169,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 214)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 164,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 216)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 165,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 216)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 167,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 216)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": true
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 130,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 217)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 138,
+     "rank": 2,
+     "ochiai": 0.068,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 217)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/formatting.py",
+     "line": 69,
+     "rank": 2,
+     "ochiai": 0.067,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.07 (ef 1, ep 220)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    }
+   ],
+   "why": {
+    "target": "getvalue",
+    "sibling": "tests/test_formatting.py::test_help_formatter_write_text",
+    "executed": {},
+    "note": "the failing test executed no source line"
+   },
+   "notes": [],
+   "seconds": 38.74,
+   "outcome": "LOCATED"
+  },
+  {
+   "sha": "a09c1c655e",
+   "file": "src/click/termui.py",
+   "date": "2026-05-08",
+   "subject": "fix: show custom error message in prompt with hide_input=True",
+   "pre_existing_failures": 0,
+   "truth_lines": [
+    206
+   ],
+   "status": "red",
+   "failing": [
+    "tests/test_termui.py::test_hide_input_error_message[builtin-int-masks-repr-value]"
+   ],
+   "line_rank": null,
+   "file_rank": null,
+   "law_ranked": true,
+   "vetoed": 0,
+   "legacy_line_rank": null,
+   "legacy_file_rank": null,
+   "baseline_file_rank": 4,
+   "baseline_files": 8,
+   "candidates": [
+    {
+     "file": "src/click/globals.py",
+     "line": 36,
+     "rank": 3,
+     "ochiai": 0.031,
+     "score": 4,
+     "lanes": [
+      "literal",
+      "executed",
+      "spectrum 0.03 (ef 1, ep 1051)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 36,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "recent"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 46,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "recent"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 22,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 25,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 32,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 35,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/testing.py",
+     "line": 257,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/testing.py",
+     "line": 258,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 67,
+     "rank": 2,
+     "ochiai": 0.061,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.06 (ef 1, ep 264)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 37,
+     "rank": 2,
+     "ochiai": 0.061,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.06 (ef 1, ep 265)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 41,
+     "rank": 2,
+     "ochiai": 0.061,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.06 (ef 1, ep 265)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 65,
+     "rank": 2,
+     "ochiai": 0.034,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.03 (ef 1, ep 890)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 62,
+     "rank": 2,
+     "ochiai": 0.031,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.03 (ef 1, ep 1020)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 46,
+     "rank": 2,
+     "ochiai": 0.031,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.03 (ef 1, ep 1039)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 51,
+     "rank": 2,
+     "ochiai": 0.031,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.03 (ef 1, ep 1039)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 77,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 80,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 91,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 102,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 113,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 126,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 7,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 15,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 16,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 18,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 9,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 20,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 44,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 49,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 54,
+     "rank": 2,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    }
+   ],
+   "raised": false,
+   "omission_line_rank": null,
+   "omission_file_rank": null,
+   "omission_candidates": [
+    {
+     "file": "src/click/_utils.py",
+     "line": 19,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 60,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/testing.py",
+     "line": 28,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/testing.py",
+     "line": 29,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/testing.py",
+     "line": 30,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/testing.py",
+     "line": 33,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/testing.py",
+     "line": 36,
+     "rank": 1,
+     "lanes": [
+      "HEAD",
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 1,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/testing.py",
+     "line": 37,
+     "rank": 1,
+     "lanes": [
+      "PASSONLY"
+     ],
+     "bits": {
+      "ENDED": 0,
+      "NEXT": 0,
+      "TARGET": 0,
+      "HEAD": 0,
+      "PASSONLY": 1,
+      "RAISED": 0,
+      "DIVERGE": 0,
+      "RECENT": 0
+     },
+     "truth": false
+    }
+   ],
+   "insertion": false,
+   "top": [
+    {
+     "file": "src/click/globals.py",
+     "line": 36,
+     "rank": 3,
+     "ochiai": 0.031,
+     "score": 4,
+     "lanes": [
+      "literal",
+      "executed",
+      "spectrum 0.03 (ef 1, ep 1051)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 1,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 36,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "recent"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/__init__.py",
+     "line": 46,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 1,
+     "lanes": [
+      "recent"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 22,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 25,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 32,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/_utils.py",
+     "line": 35,
+     "rank": 3,
+     "ochiai": 0.0,
+     "score": 2,
+     "lanes": [
+      "recent",
+      "executed"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 1,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 0,
+      "EP_NONE": 0,
+      "IMPORT": 1
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/testing.py",
+     "line": 257,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/testing.py",
+     "line": 258,
+     "rank": 2,
+     "ochiai": 0.707,
+     "score": 3,
+     "lanes": [
+      "executed",
+      "spectrum 0.71 (ef 1, ep 1)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 67,
+     "rank": 2,
+     "ochiai": 0.061,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.06 (ef 1, ep 264)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 37,
+     "rank": 2,
+     "ochiai": 0.061,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.06 (ef 1, ep 265)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 41,
+     "rank": 2,
+     "ochiai": 0.061,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.06 (ef 1, ep 265)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 65,
+     "rank": 2,
+     "ochiai": 0.034,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.03 (ef 1, ep 890)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 62,
+     "rank": 2,
+     "ochiai": 0.031,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.03 (ef 1, ep 1020)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    },
+    {
+     "file": "src/click/globals.py",
+     "line": 46,
+     "rank": 2,
+     "ochiai": 0.031,
+     "score": 2,
+     "lanes": [
+      "executed",
+      "spectrum 0.03 (ef 1, ep 1039)"
+     ],
+     "bits": {
+      "FRAME": 0,
+      "LITERAL": 0,
+      "RECENT": 0,
+      "BISECT": 0,
+      "DIVERGE": 0,
+      "EF_ALL": 1,
+      "EP_NONE": 0,
+      "IMPORT": 0
+     },
+     "truth": false
+    }
+   ],
+   "why": {
+    "target": "SystemExit",
+    "sibling": "tests/test_stream_lifecycle.py::test_invoke_with_thread_pool_and_exit",
+    "executed": {},
+    "note": "the failing test executed no source line"
+   },
+   "notes": [],
+   "seconds": 54.47,
+   "outcome": "MISSED"
   }
  ]
 }

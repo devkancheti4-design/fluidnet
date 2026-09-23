@@ -201,7 +201,10 @@ def cmd_float(a) -> int:
                     print("the icon closed five times; stopping — ~/.fluidnet/icon.log has the reason"); break
             _t.sleep(a.interval if red else 1.0)
     except KeyboardInterrupt:
-        pass
+        print("\nbuggy stopped (Ctrl-C)")
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        print(f"buggy stopped on an error: {type(e).__name__}: {e}")
     finally:
         if badge is not None and badge.poll() is None:
             badge.terminate()

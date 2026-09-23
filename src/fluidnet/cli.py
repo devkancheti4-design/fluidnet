@@ -82,6 +82,76 @@ def cmd_mcp(a) -> int:
     return serve()
 
 
+def cmd_locate(a) -> int:
+    from .locate import locate
+    L = locate(a.root, python=a.python or sys.executable, good=a.good, bisect=not a.no_bisect,
+               trace=not a.no_trace)
+    if a.json:
+        from dataclasses import asdict
+        print(json.dumps(asdict(L), indent=1))
+    else:
+        print(L.render())
+    return {"green": 0, "red": 3}.get(L.status, 1)
+
+
+def _tk_python() -> str | None:
+    import shutil, subprocess as sp
+    cands = [sys.executable, "/Library/Frameworks/Python.framework/Versions/3.14/bin/python3",
+             "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3", "/usr/bin/python3",
+             shutil.which("python3") or ""]
+    for c in cands:
+        if c and sp.run([c, "-c", "import tkinter"], capture_output=True).returncode == 0:
+            return c
+    return None
+
+
+def cmd_float(a) -> int:
+    """Keep .fluidfix/locate.json fresh — on every source change, and every --interval seconds while red —
+    and show it as a floating icon under whichever Python here has Tk."""
+    import subprocess as sp, threading, time as _t
+    from .locate import locate
+    root = str(Path(a.root).resolve()); fx = Path(root, ".fluidfix"); fx.mkdir(exist_ok=True)
+    badge = None
+    if not a.headless:
+        py = _tk_python()
+        if py:
+            badge = sp.Popen([py, str(Path(__file__).with_name("float_icon.py")), root])
+            print(f"floating icon up (Tk via {py}); click it for the root cause, right-click to quit")
+        else:
+            print("no Python with Tk found here; running headless — read .fluidfix/locate.json")
+    def snapshot():
+        out = {}
+        for p in Path(root).rglob("*.py"):
+            if any(part in (".venv", "venv", ".git", "__pycache__", ".fluidfix") for part in p.relative_to(root).parts):
+                continue
+            try: out[str(p)] = p.stat().st_mtime_ns
+            except OSError: pass
+        return out
+    last, red = snapshot(), False
+    print(f"watching {root} — Ctrl-C to stop")
+    try:
+        while True:
+            now = snapshot()
+            if now != last or (red and a.interval):
+                last = now
+                (fx / "locating").touch()
+                try:
+                    L = locate(root, python=a.python or sys.executable, bisect=not a.no_bisect)
+                    red = L.status == "red"
+                    print(f"[{_t.strftime('%H:%M:%S')}] {L.status}" + (f": {L.where[0].file}:{L.where[0].line} ({len(L.where[0].lanes)} lanes)" if red and L.where else ""))
+                finally:
+                    (fx / "locating").unlink(missing_ok=True)
+            if badge is not None and badge.poll() is not None:
+                print("icon closed; stopping"); break
+            _t.sleep(a.interval if red else 1.0)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if badge is not None and badge.poll() is None:
+            badge.terminate()
+    return 0
+
+
 def cmd_doctor(a) -> int:
     ok = True
     try:
@@ -141,6 +211,19 @@ def main(argv=None) -> int:
     g.add_argument("root"); g.add_argument("--file", required=True); g.add_argument("--patch", required=True)
     g.add_argument("--dictionary"); g.add_argument("--confirm", type=int, default=2); g.add_argument("--python")
     g.add_argument("--json", action="store_true"); g.set_defaults(fn=cmd_gate)
+
+    l = sub.add_parser("locate", help="root cause of a red suite: WHERE (file, line), WHEN (commit, by "
+                                      "bisect), WHY (first divergence from a passing test)")
+    l.add_argument("root"); l.add_argument("--good", help="a revision known green (else searched, 24 back)")
+    l.add_argument("--no-bisect", action="store_true"); l.add_argument("--no-trace", action="store_true")
+    l.add_argument("--python"); l.add_argument("--json", action="store_true"); l.set_defaults(fn=cmd_locate)
+
+    fl = sub.add_parser("float", help="a floating icon: grey green, red red, click for the root cause; keeps "
+                                      "locate.json fresh on every source change")
+    fl.add_argument("root"); fl.add_argument("--interval", type=float, default=15.0,
+                                             help="re-locate this often while red (default 15s)")
+    fl.add_argument("--no-bisect", action="store_true"); fl.add_argument("--headless", action="store_true")
+    fl.add_argument("--python"); fl.set_defaults(fn=cmd_float)
 
     sub.add_parser("mcp", help="serve gate / certify / propose over MCP (stdio); needs fluidnet[mcp]").set_defaults(fn=cmd_mcp)
 

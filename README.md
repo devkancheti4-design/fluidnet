@@ -64,6 +64,14 @@ pip install 'fluidnet[mcp]' && fluidnet mcp                                     
 The verdict vocabulary of a truth layer, for the one action a truth layer cannot judge. Details and the
 replay of 84 model-written and adversarial patches: [docs/BRAIN.md](docs/BRAIN.md).
 
+**7. It's red and you don't know where. Locate before you repair.**
+```bash
+fluidnet locate .        # WHERE (file, line), WHEN (the commit, by bisect), WHY (first divergence from a passing test)
+fluidnet float .         # the same as a floating icon that turns red and shows the root cause on click
+```
+Confidence is the count of independent lanes agreeing, never a probability; a lane with no evidence says
+so. [docs/LOCATE.md](docs/LOCATE.md).
+
 ## Using it efficiently
 
 - **Teach on the second occurrence, not the first.** One instance is an incident; two is a shape.
@@ -100,7 +108,7 @@ Every one of these happened this month.
 ## Test
 
 ```bash
-pytest -q        # 20 tests, each a real pytest project in a temp dir, nothing mocked
+pytest -q        # 24 tests, each a real pytest project in a temp dir, nothing mocked
 ```
 
 AGPL-3.0-or-later.

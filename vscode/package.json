@@ -1,0 +1,30 @@
+{
+  "name": "fluidnet",
+  "displayName": "fluidnet — the bug crawls to the root cause",
+  "description": "A pixel bug in the status bar that twitches when your suite is red; a command that locates the root cause by evidence and a generated law; the bug crawls your executed lines in the editor and stops where the law ruled. No model.",
+  "version": "0.1.0",
+  "publisher": "devkancheti4-design",
+  "license": "AGPL-3.0-or-later",
+  "repository": { "type": "git", "url": "https://github.com/devkancheti4-design/fluidnet" },
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Testing", "Other"],
+  "icon": "media/icon.png",
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "fluidnet.locate", "title": "fluidnet: locate the bug" },
+      { "command": "fluidnet.crawl",  "title": "fluidnet: crawl to the bug" },
+      { "command": "fluidnet.scan",   "title": "fluidnet: scan every workspace folder" }
+    ],
+    "configuration": {
+      "title": "fluidnet",
+      "properties": {
+        "fluidnet.path":   { "type": "string", "default": "fluidnet", "description": "The fluidnet executable (a venv's bin/fluidnet works)." },
+        "fluidnet.python": { "type": "string", "default": "", "description": "The interpreter that runs the target's suite (default: the one fluidnet runs under)." },
+        "fluidnet.bisect": { "type": "boolean", "default": false, "description": "Also bisect the commit that introduced it (slower)." },
+        "fluidnet.onSave": { "type": "boolean", "default": true, "description": "Locate again when a .py file is saved." }
+      }
+    }
+  }
+}

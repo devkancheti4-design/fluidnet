@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import json
 import sys
 from pathlib import Path
@@ -88,10 +89,46 @@ def cmd_locate(a) -> int:
                trace=not a.no_trace)
     if a.json:
         from dataclasses import asdict
-        print(json.dumps(asdict(L), indent=1))
+        d = asdict(L); d.pop("_vetoed_list", None); print(json.dumps(d, indent=1))
+    elif a.format == "vscode":
+        # one line per finding, in the shape a problem matcher reads:  file:line: message
+        for f in L.where[:5]:
+            print(f"{f.file}:{f.line}: cause {f.rank}/15 — {', '.join(f.lanes)}")
+        if L.status != "red":
+            print(f"# {L.render()}")
     else:
         print(L.render())
+    if a.open and L.status == "red" and L.where:
+        import shutil, subprocess as sp
+        ed = a.editor or os.environ.get("FLUIDNET_EDITOR") or next((e for e in ("code", "cursor", "windsurf") if shutil.which(e)), None)
+        if ed:
+            sp.Popen([ed, "-g", f"{Path(a.root, L.where[0].file)}:{L.where[0].line}"])
+        else:
+            print("(no editor command found to --open with; set FLUIDNET_EDITOR)")
     return {"green": 0, "red": 3}.get(L.status, 1)
+
+
+def cmd_vscode_init(a) -> int:
+    """Drop a task into a repo: run it and the guilty line lands in the Problems pane, no extension needed."""
+    d = Path(a.root) / ".vscode"; d.mkdir(exist_ok=True); tf = d / "tasks.json"
+    task = {"label": "fluidnet: locate the bug", "type": "shell",
+            "command": f"{a.fluidnet} locate . --no-bisect --format vscode",
+            "presentation": {"reveal": "always", "panel": "dedicated"},
+            "problemMatcher": {"owner": "fluidnet", "fileLocation": ["relative", "${workspaceFolder}"],
+                               "severity": "error",
+                               "pattern": {"regexp": "^([^:#][^:]*):(\\d+): (.*)$", "file": 1, "line": 2, "message": 3}}}
+    if tf.exists():
+        try:
+            cur = json.loads(tf.read_text())
+        except json.JSONDecodeError:
+            print(f"{tf} exists and is not valid JSON; add this task by hand:\n{json.dumps(task, indent=2)}"); return 1
+        cur.setdefault("tasks", [])
+        cur["tasks"] = [t for t in cur["tasks"] if t.get("label") != task["label"]] + [task]
+    else:
+        cur = {"version": "2.0.0", "tasks": [task]}
+    tf.write_text(json.dumps(cur, indent=2) + "\n")
+    print(f"wrote {tf}\n  Terminal → Run Task → \"fluidnet: locate the bug\"  — the root cause appears in Problems.")
+    return 0
 
 
 def _tk_python() -> str | None:
@@ -232,7 +269,14 @@ def main(argv=None) -> int:
                                       "bisect), WHY (first divergence from a passing test)")
     l.add_argument("root"); l.add_argument("--good", help="a revision known green (else searched, 24 back)")
     l.add_argument("--no-bisect", action="store_true"); l.add_argument("--no-trace", action="store_true")
-    l.add_argument("--python"); l.add_argument("--json", action="store_true"); l.set_defaults(fn=cmd_locate)
+    l.add_argument("--python"); l.add_argument("--json", action="store_true")
+    l.add_argument("--format", choices=["text", "vscode"], default="text", help="vscode: file:line: message per finding")
+    l.add_argument("--open", action="store_true", help="jump your editor to the top line (code/cursor/windsurf, or FLUIDNET_EDITOR)")
+    l.add_argument("--editor"); l.set_defaults(fn=cmd_locate)
+
+    vi = sub.add_parser("vscode-init", help="add a 'fluidnet: locate the bug' task with a problem matcher to a repo's .vscode/tasks.json")
+    vi.add_argument("root"); vi.add_argument("--fluidnet", default="fluidnet", help="how the task should invoke fluidnet")
+    vi.set_defaults(fn=cmd_vscode_init)
 
     fl = sub.add_parser("float", help="a floating icon: grey green, red red, click for the root cause; keeps "
                                       "locate.json fresh on every source change")

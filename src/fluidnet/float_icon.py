@@ -4,7 +4,8 @@ keeps fresh, and imports nothing from fluidnet.
 
     grey    suite green, or no data        amber   locating        red, twitching   suite red
 
-Click it when it is red: your file opens and the bug crawls down the lines the failing test actually
+Drag it onto a Finder window and drop: that folder is scanned (the icon flies home). Drop anywhere else
+and it just moved. Double-click: pick a folder, for every other app. Click it when it is red: your file opens and the bug crawls down the lines the failing test actually
 executed — the law's rank in the gutter as it passes — and stops on the line the CAUSE law ranked first,
 naming which of the four lanes were strong and which weak. Nothing it walks is invented: the path is the
 locator's own evidence. Drag to move. Right-click to quit.
@@ -12,9 +13,25 @@ locator's own evidence. Drag to move. Right-click to quit.
 usage: float_icon.py <root> [--selftest] [--crawl]     (--crawl opens the crawl at once)"""
 import json, os, sys, tkinter as tk
 
-ROOT = sys.argv[1]
-JSON = os.path.join(ROOT, ".fluidfix", "locate.json")
-BUSY = os.path.join(ROOT, ".fluidfix", "locating")
+import subprocess
+from tkinter import filedialog
+HOME = os.path.join(os.path.expanduser("~"), ".fluidnet"); os.makedirs(HOME, exist_ok=True)
+TARGET_FILE, SCAN_NOW = os.path.join(HOME, "target"), os.path.join(HOME, "scan-now")
+
+
+def root():
+    try:
+        t = open(TARGET_FILE).read().strip()
+        if t and os.path.isdir(t):
+            return t
+    except OSError:
+        pass
+    return sys.argv[1]
+
+
+ROOT = root()
+JSON = lambda: os.path.join(root(), ".fluidfix", "locate.json")
+BUSY = lambda: os.path.join(root(), ".fluidfix", "locating")
 SELFTEST, CRAWL_NOW = "--selftest" in sys.argv, "--crawl" in sys.argv
 # 9x9 pixel ladybug, two frames (legs). k black, r red, w white, . transparent
 FRAMES = [["...kkk...", "..kwkwk..", ".rrkkkrr.", "krrrrrrrk", ".rkrrrkr.", "krrrrrrrk", ".rrkkkrr.", "k.rrrrr.k", "..k...k.."],
@@ -41,13 +58,59 @@ def draw_sprite(canvas, frame, body, scale, ox=0, oy=0):
 
 def read():
     try:
-        return json.load(open(JSON))
+        return json.load(open(JSON()))
     except Exception:
         return None
 
 
+def toast(msg, ms=2600):
+    t = tk.Toplevel(win); t.overrideredirect(True); t.attributes("-topmost", True)
+    tk.Label(t, text=msg, bg="#1e1e1e", fg="#e6e4de", font=("Menlo", 11), padx=10, pady=6).pack()
+    t.update_idletasks()
+    t.geometry(f"+{max(4, win.winfo_x() - t.winfo_reqwidth() + 36)}+{max(4, win.winfo_y() - 44)}")
+    t.after(ms, t.destroy)
+
+
+def finder_folder_at(x, y):
+    """The folder of the Finder window under screen point (x, y) — the selected folder in it if there is
+    one — or "" if the point is not on a Finder window. Asked of Finder itself; nothing is guessed."""
+    script = f'''
+    tell application "Finder"
+        set px to {x}
+        set py to {y}
+        set n to count of Finder windows
+        repeat with i from 1 to n
+            set {{x1, y1, x2, y2}} to (bounds of Finder window i)
+            if (px >= x1) and (px <= x2) and (py >= y1) and (py <= y2) then
+                try
+                    set sel to selection
+                    if ((count of sel) > 0) and (class of (item 1 of sel) is folder) then return POSIX path of ((item 1 of sel) as alias)
+                end try
+                try
+                    return POSIX path of ((target of Finder window i) as alias)
+                end try
+            end if
+        end repeat
+        return ""
+    end tell'''
+    try:
+        r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=6)
+        return r.stdout.strip()
+    except Exception:
+        return ""
+
+
+def scan_folder(path):
+    path = path.rstrip("/")
+    if not os.path.isdir(path):
+        return
+    open(TARGET_FILE, "w").write(path)
+    open(SCAN_NOW, "w").write("1")
+    toast(f"scanning {os.path.basename(path) or path} …")
+
+
 def repaint():
-    d = read(); busy = os.path.exists(BUSY)
+    d = read(); busy = os.path.exists(BUSY())
     st = "busy" if busy else ("none" if not d else ("red" if d.get("status") == "red" else "green"))
     state["status"] = st
     if st == "red":
@@ -76,7 +139,7 @@ def open_crawl(d):
     if not w:
         return
     try:
-        src = open(os.path.join(ROOT, w["file"]), encoding="utf-8").read().split("\n")
+        src = open(os.path.join(root(), w["file"]), encoding="utf-8").read().split("\n")
     except OSError:
         return
     top = tk.Toplevel(win); state["crawl"] = top
@@ -145,15 +208,32 @@ def open_crawl(d):
 
 # ------------------------------------------------------------------ input
 drag = {}
-def press(e): drag.update(x=e.x, y=e.y, moved=False)
 def move(e):
     drag["moved"] = True; win.geometry(f"+{win.winfo_x() + e.x - drag['x']}+{win.winfo_y() + e.y - drag['y']}")
 def release(e):
-    if drag.get("moved"): return
+    if drag.get("moved"):
+        # dropped: on a Finder window it is a scan of that folder (and the icon flies home); anywhere
+        # else it is just a move
+        x, y = win.winfo_pointerxy()
+        folder = finder_folder_at(x, y) if sys.platform == "darwin" else ""
+        if folder:
+            win.geometry(f"+{drag.get('hx', win.winfo_x())}+{drag.get('hy', win.winfo_y())}")
+            scan_folder(folder)
+        return
     d = read()
     if d and d.get("status") == "red" and d.get("walk"):
         open_crawl(d)
+
+
+def pick(e):
+    folder = filedialog.askdirectory(title="fluidnet — scan which project folder?")
+    if folder:
+        scan_folder(folder)
+
+
+def press(e): drag.update(x=e.x, y=e.y, moved=False, hx=win.winfo_x(), hy=win.winfo_y())
 cv.bind("<ButtonPress-1>", press); cv.bind("<B1-Motion>", move); cv.bind("<ButtonRelease-1>", release)
+cv.bind("<Double-Button-1>", pick)
 cv.bind("<Button-2>", lambda e: win.destroy()); cv.bind("<Button-3>", lambda e: win.destroy())
 repaint()
 if CRAWL_NOW:

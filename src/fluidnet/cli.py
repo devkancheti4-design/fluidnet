@@ -110,7 +110,10 @@ def cmd_float(a) -> int:
     and show it as a floating icon under whichever Python here has Tk."""
     import subprocess as sp, threading, time as _t
     from .locate import locate
-    root = str(Path(a.root).resolve()); fx = Path(root, ".fluidfix"); fx.mkdir(exist_ok=True)
+    home = Path.home() / ".fluidnet"; home.mkdir(exist_ok=True)
+    target_file, scan_now = home / "target", home / "scan-now"
+    root = str(Path(a.root).resolve()); target_file.write_text(root)
+    fx = Path(root, ".fluidfix"); fx.mkdir(exist_ok=True)
     badge = None
     if not a.headless:
         py = _tk_python()
@@ -128,9 +131,17 @@ def cmd_float(a) -> int:
             except OSError: pass
         return out
     last, red = snapshot(), False
-    print(f"watching {root} — Ctrl-C to stop")
+    print(f"watching {root} — drop the icon on a Finder window to switch folders; Ctrl-C to stop")
     try:
         while True:
+            want = target_file.read_text().strip() if target_file.exists() else root
+            forced = scan_now.exists()
+            if (want and want != root and Path(want).is_dir()) or forced:
+                scan_now.unlink(missing_ok=True)
+                if want != root:
+                    root = want; fx = Path(root, ".fluidfix"); fx.mkdir(exist_ok=True)
+                    print(f"[{_t.strftime('%H:%M:%S')}] now watching {root}")
+                last = None                                # force a locate on the new target
             now = snapshot()
             if now != last or (red and a.interval):
                 last = now

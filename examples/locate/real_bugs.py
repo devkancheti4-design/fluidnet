@@ -20,8 +20,16 @@ from fluidfix.guard import find_candidate_files            # noqa: E402
 from fluidfix.oracle import Oracle                         # noqa: E402
 
 
-def sh(args, cwd=None, env=None, t=1200):
-    return subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, timeout=t)
+class _Timeout:
+    returncode, stdout, stderr = 124, "", "timed out"
+
+
+def sh(args, cwd=None, env=None, t=1800):
+    """A timeout is an outcome for one case, never the end of the run (rich's suite killed a whole run at 900 s)."""
+    try:
+        return subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, timeout=t)
+    except subprocess.TimeoutExpired:
+        return _Timeout()
 
 
 def truth_lines(work, sha, rel):
@@ -73,7 +81,9 @@ def main():
         for d in work.rglob("__pycache__"):
             shutil.rmtree(d, ignore_errors=True)
         col = sh([py, "-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider", *BASE, "--collect-only"], cwd=work, t=600)
-        if col.returncode != 0:
+        if col.returncode == 124:
+            rec["outcome"] = "SKIP-TIMEOUT"
+        elif col.returncode != 0:
             rec["outcome"] = "SKIP-NO-COLLECT"
         else:
             g0 = sh([py, "-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider", *BASE, "--tb=no"], cwd=work, t=900)
@@ -82,7 +92,9 @@ def main():
             rec["pre_existing_failures"] = len(pre)
             if pre:
                 g0 = sh([py, "-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider", *BASE, "--tb=no", *desel], cwd=work, t=900)
-            if g0.returncode != 0:
+            if g0.returncode == 124:
+                rec["outcome"] = "SKIP-TIMEOUT"
+            elif g0.returncode != 0:
                 rec["outcome"] = "SKIP-BASELINE-NOT-GREEN"
             else:
                 sh(["git", "checkout", sha, "--"] + r["tests"], cwd=work)
@@ -95,7 +107,7 @@ def main():
                     truth = truth_lines(work, sha, rel); rec["truth_lines"] = truth
                     try:
                         L = locate(str(work), python=py, bisect=False, extra_args=BASE + desel)
-                    except Exception as e:
+                    except (Exception, subprocess.TimeoutExpired) as e:
                         rec["outcome"] = f"CRASH {type(e).__name__}: {str(e)[:80]}"; out.append(rec)
                         print(f"{i:>3} {sha[:10]:11} {rel[-28:]:28} {'':>7} {'':>5} {'':>5} {'':>5} {'':>5}  {rec['outcome']}", flush=True)
                         outp.write_text(json.dumps({"repo": a.repo, "rows": out}, indent=1)); continue

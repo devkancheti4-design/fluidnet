@@ -82,6 +82,30 @@ WHERE puts the guilty line first with four lanes; WHEN names the breaking commit
 WHY parts at the express branch against the passing sibling; with no sibling the WHY lane says so; the
 working tree and HEAD are untouched afterwards.
 
-Real bugs are next: 198 of the 565 mined fixes ship their own test; ground truth is the old side of each
-fix's hunks; the metric is the rank of the best ground-truth line and of its file, against the count-based
-baseline on the same cases. Not yet run — this page will carry the numbers when it has been.
+## Measured on real bugs — click, 26 judged of 31
+
+`examples/locate/real_bugs.py`, 2026-09-23: check out each fix's parent, deselect pre-existing failures,
+bring in only the fix's test files, confirm red, locate blind. Ground truth is the old side of the fix's
+hunks. WHEN off (a fix has no recorded introducing commit to grade a bisect against).
+
+| | cause law | old hand sum | count-based baseline |
+|---|---|---|---|
+| guilty **file** ranked 1st | **9** | 11 | 3 |
+| guilty file in top 5 | 18 | 18 | 22 |
+| guilty **line** ranked 1st | 2 | 2 | — |
+| guilty line in top 5 | 2 | 5 | — |
+| guilty line in top 10 | 5 | 6 | — |
+
+Read it straight. At file level the spectrum-based rankings put the guilty file first three times as often
+as the count-based baseline (the baseline lists more files, so it catches up by the top 5). At line level
+**neither ranking reaches**: the guilty line was among the law's candidates in only 8 of 26 cases. The
+other 18 are faults of omission — the fix adds code the old file never ran — which is exactly what the
+OMISSION law was then written for; it is measured beside the cause law on the rerun in progress.
+
+In the 8 reachable cases every guilty line carried the same word, `EF_ALL` alone, and what outranked it
+36 times of 46 was an import-time line containing an assertion literal. That is a table defect with a
+stated principle — an unmeasured lane is silent, not weak — and the fix, replayed on the logged bits
+before any kernel was asked for, is 3 better, 0 worse, 5 unchanged: `docs/laws/CAUSE_LAW_REVISION_PROMPT.md`.
+
+Rich: the first run died on a suite timeout the harness did not catch (fixed); rerunning. Both numbers
+will be here when they land, whatever they are.

@@ -159,9 +159,12 @@ print(json.dumps(out))
 
 def _package_dirs(root: str) -> list[str]:
     out = []
-    for p in sorted(Path(root).iterdir()):
-        if p.is_dir() and (p / "__init__.py").exists() and p.name not in ("tests", "test"):
-            out.append(p.name)
+    for base in (Path(root), Path(root, "src")):
+        if not base.is_dir():
+            continue
+        for p in sorted(base.iterdir()):
+            if p.is_dir() and (p / "__init__.py").exists() and p.name not in ("tests", "test"):
+                out.append(str(p.relative_to(root)))
     return out or ["."]
 
 
@@ -347,23 +350,28 @@ def why(root: str, python: str, out: str, failing: list[str]) -> dict:
     if not target:
         return {"note": "the assertion names no function to trace — the WHY lane has no evidence"}
     sib = _sibling_test(root, failing, target)
-    if not sib:
-        return {"target": target, "note": f"no passing test calls {target}() — the WHY lane has no evidence"}
     traces = {}
     with tempfile.TemporaryDirectory() as td:
-        for tag, tid in (("fail", failing[0]), ("pass", sib)):
+        for tag, tid in (("fail", failing[0]),) + ((("pass", sib),) if sib else ()):
             outp = Path(td) / f"{tag}.json"
             r = subprocess.run([python, "-B", "-c", _TRACER, str(Path(root).resolve()), tid, str(outp)],
                                capture_output=True, text=True, timeout=120, cwd=root, env={**os.environ, **_NO_PYC})
             if not outp.exists():
                 return {"target": target, "sibling": sib, "note": f"could not trace {tid}: {r.stderr.strip()[-160:]}"}
             traces[tag] = json.load(open(outp))
-    a, b = traces["fail"]["trace"], traces["pass"]["trace"]
+    a = traces["fail"]["trace"]
     if not a:
         return {"target": target, "sibling": sib, "note": "the failing test executed no source line"}
+    # where the failing run's path ENDED in source: for a fault of omission — the fix adds code the old
+    # file never ran — this is the only line-level evidence there is, and it needs no sibling
+    last = {"file": a[-1][0], "line": a[-1][1]}
+    if not sib:
+        return {"target": target, "last_executed": last,
+                "note": f"no passing test calls {target}() — the WHY lane has no divergence to show"}
+    b = traces["pass"]["trace"]
     for i, (fa, pb) in enumerate(zip(a, b)):
         if (fa[0], fa[1]) != (pb[0], pb[1]):
-            return {"target": target, "sibling": sib, "kind": "control-flow",
+            return {"target": target, "sibling": sib, "kind": "control-flow", "last_executed": last,
                     "diverges_at": {"file": fa[0], "line": fa[1]},
                     "detail": f"the passing run went to {pb[0]}:{pb[1]} here"}
     # same path: the first local whose value differs, past the point where the inputs are read
@@ -372,23 +380,28 @@ def why(root: str, python: str, out: str, failing: list[str]) -> dict:
         if diff and i > 0:
             k = next(iter(diff))
             return {"target": target, "sibling": sib, "kind": "same path, values differ from the inputs on",
-                    "diverges_at": {"file": fa[0], "line": fa[1]},
+                    "last_executed": last, "diverges_at": {"file": fa[0], "line": fa[1]},
                     "detail": f"first differing local {k}: failing {diff[k][0]} vs passing {diff[k][1]}"}
     if len(a) != len(b):
         fa = a[min(len(a), len(b)) - 1] if len(a) > len(b) else b[len(a) - 1]
-        return {"target": target, "sibling": sib, "kind": "control-flow",
+        return {"target": target, "sibling": sib, "kind": "control-flow", "last_executed": last,
                 "diverges_at": {"file": fa[0], "line": fa[1]},
                 "detail": "one run ended here and the other continued"}
-    return {"target": target, "sibling": sib, "note": "identical paths and locals — the two tests do not distinguish the code"}
+    return {"target": target, "sibling": sib, "last_executed": last,
+            "note": "identical paths and locals — the two tests do not distinguish the code"}
 
 
 # ------------------------------------------------------------------ all three
 def locate(root: str, python: str = sys.executable, good: str | None = None, bisect: bool = True,
-           trace: bool = True, top_files: int = 3) -> Located:
+           trace: bool = True, top_files: int = 3, extra_args: list | None = None) -> Located:
+    """extra_args are passed to every pytest run (e.g. -W default, --deselect id): what an old revision
+    needs to collect and to be green apart from the bug under study."""
     t0 = time.time()
     root = str(Path(root).resolve())
     L = Located()
     o = Oracle(root, python=python)
+    if extra_args:
+        o.extra_args = list(o.extra_args) + list(extra_args)
     try:
         fails, out = o.failing_output()
     except Exception as e:
@@ -438,6 +451,17 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
                         f.lanes.append(f"when-commit {w['commit'][:7]}"); f.score += 2; f.bits["BISECT"] = 1
     if trace and L.failing:
         L.why = why(root, python, out, L.failing)
+        le = (L.why or {}).get("last_executed")
+        if le:
+            hit = next((f for f in L.where if f.file == le["file"] and f.line == le["line"]), None)
+            if hit:
+                hit.lanes.append("last-executed"); hit.score += 2
+            else:
+                try:
+                    src = Path(root, le["file"]).read_text(encoding="utf-8").split("\n")[le["line"] - 1]
+                except Exception:
+                    src = ""
+                L.where.append(Finding(le["file"], le["line"], src, ["last-executed"], 2))
         d = (L.why or {}).get("diverges_at")
         if d:
             hit = next((f for f in L.where if f.file == d["file"] and f.line == d["line"]), None)

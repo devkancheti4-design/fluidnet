@@ -60,7 +60,10 @@ def test_no_sibling_means_the_why_lane_says_so(tmp_path):
     root = make(tmp_path, with_sibling=False)
     L = locate(root)
     assert L.status == "red" and L.where[0].file == "pkg/quote.py"
-    assert L.why and "no evidence" in L.why.get("note", "")
+    assert L.why and "no passing test calls quote()" in L.why.get("note", "")
+    # ...but the lane still knows where the failing run's path ended — the only line evidence an omission has
+    assert L.why["last_executed"]["file"] == "pkg/quote.py"
+    assert any("last-executed" in f.lanes for f in L.where)
 
 
 def test_tree_untouched_by_bisect(tmp_path):

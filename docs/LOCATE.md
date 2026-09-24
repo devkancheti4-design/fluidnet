@@ -32,6 +32,20 @@ line, never by how many lines they execute: fluidfix's count-based file ranking 
   the test cannot be evaluated (a skip to git bisect, never a verdict).
 - *spectrum lane: no per-test coverage.* `pytest-cov` is missing from the interpreter that runs the suite.
 
+## On a real full-stack project — mealie, 41,000 lines, one planted sign-in bug
+
+2026-09-24, `~/neo/demo/mealie-live`: Mealie (FastAPI + Vue, about 1,900 tests on SQLite) with an
+off-by-one planted in the login lockout (`>=` → `>` twice in `CredentialsProvider.authenticate`) as a
+commit with four innocent commits on top. One test goes red. `fluidnet locate .` with nothing else:
+ranks 1 and 2 are the two changed lines at cause 7, and bisect names the planted commit in 6 test runs.
+
+What the project taught the body, none of it the laws: the suite must run under the project's own
+interpreter (a uv venv is a symlink, so it must not be resolved); the suite was being run four times —
+`-x` for the first failure, twice under coverage for the file ranking, once for the spectrum — and now
+runs **once**, with long tracebacks and per-test contexts carrying everything, 294 s instead of 1,525 s;
+and the WHY tracer had to follow threads, because an HTTP test client serves the request on a portal
+thread and `sys.settrace` alone saw "no source line".
+
 ## Four traps it already fell into, so you don't
 
 **Stale bytecode across revisions.** `total * 2` and `total + 2` are the same length; two checkouts landed

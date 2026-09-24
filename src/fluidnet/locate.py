@@ -151,7 +151,9 @@ def project_python(root: str) -> str:
     for rel in (".venv/bin/python", "venv/bin/python", ".venv/Scripts/python.exe", "venv/Scripts/python.exe"):
         cand = Path(root, rel)
         if cand.exists():
-            return str(cand.resolve())
+            # NOT resolved: a uv/venv interpreter is a symlink to the base Python, and following it loses
+            # the venv's site-packages (mealie's .venv resolved to Homebrew's python3.14 with no pytest)
+            return str(cand.absolute())
     return sys.executable
 
 
@@ -244,16 +246,25 @@ def spectrum(root: str, python: str, failing: list[str], extra_args: list | None
     with tempfile.TemporaryDirectory() as td:
         cov = str(Path(td) / ".coverage")
         env = {**os.environ, **_NO_PYC, "COVERAGE_FILE": cov, "COVERAGE_CORE": "ctrace"}
+        # ONE run of the whole suite: the failures (-rfE), their long tracebacks (the WHERE bits), and the
+        # per-test coverage. It used to be four runs — -x for the first failure, two under coverage for the
+        # file ranking, one for the spectrum — which on a 140 s suite (mealie) was a quarter of an hour.
         cmd = [python, "-B", "-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider", "-W", "default",
-               "--tb=no", "-rfE", "--cov-context=test", "--cov-report="] + \
+               "--tb=long", "-rfE", "--cov-context=test", "--cov-report="] + \
               [f"--cov={d}" for d in _package_dirs(root)] + list(extra_args or [])
-        run = subprocess.run(cmd, cwd=root, capture_output=True, text=True, timeout=600, env=env)
+        run = subprocess.run(cmd, cwd=root, capture_output=True, text=True, timeout=1800, env=env)
+        spectrum.last_output = run.stdout + run.stderr
+        spectrum.last_rc = run.returncode
         spectrum.last_failing = _failing_ids(run.stdout)          # every failure in the whole suite
+        spectrum.no_cov = run.returncode == 4 and "--cov" in (run.stdout + run.stderr)
         r = subprocess.run([python, "-c", _DUMP, cov, root], capture_output=True, text=True, timeout=120)
         if r.returncode != 0 or not r.stdout.strip():
             return {}
         lines = json.loads(r.stdout)
-    fail = set(failing); F = len(fail); out = {}
+    fail = set(failing); F = max(len(fail), 1); out = {}
+    spectrum.last_contexts = {(rel, int(ln)): tests for rel, by in lines.items()
+                              if not (rel.startswith(("tests/", "test/")) or rel.endswith("conftest.py"))
+                              for ln, tests in by.items()}
     for rel, by in lines.items():
         if rel.startswith(("tests/", "test/")) or rel.endswith("conftest.py"):
             continue
@@ -266,6 +277,44 @@ def spectrum(root: str, python: str, failing: list[str], extra_args: list | None
             elif "<import>" in tests and not ts:
                 out[(rel, int(ln))] = (0.0, 0, 0)                     # ran only at import: IMPORT bit
     return out
+
+
+def spectrum_for(sp: dict, failing: list[str]) -> dict:
+    """The spectrum was measured with no failing set (one run for everything); score it for the test(s)
+    being judged. `sp` values are (score, ef, ep) with the raw per-line test sets kept on the side."""
+    import math
+    raw = getattr(spectrum, "last_contexts", None)
+    if raw is None:
+        return sp
+    fail = set(failing); F = len(fail); out = {}
+    for (rel, ln), tests in raw.items():
+        ts = set(tests) - {"<import>"}; ef = len(ts & fail); ep = len(ts - fail)
+        if ef:
+            out[(rel, ln)] = (ef / math.sqrt(F * (ef + ep)), ef, ep)
+        elif ep:
+            out[(rel, ln)] = (0.0, 0, ep)
+        elif "<import>" in tests and not ts:
+            out[(rel, ln)] = (0.0, 0, 0)
+    return out
+
+
+def _first_failure(out: str, tid: str) -> str:
+    """The long-traceback section of one failing test, plus the summary lines: the WHERE bits (frames,
+    literals) are measured from the failure being judged, not from every failure in the suite."""
+    name = tid.split("::")[-1].split("[")[0]
+    heads = [m.start() for m in re.finditer(r"^_{3,} .+ _{3,}$", out, re.M)]
+    mine = [h for h in heads if name in out[h:out.find("\n", h)]]
+    if not mine:
+        return out
+    start = mine[0]
+    later = [h for h in heads if h > start]
+    end = later[0] if later else len(out)
+    summary = out[out.rfind("short test summary info"):] if "short test summary info" in out else ""
+    return out[start:end] + "\n" + summary
+
+
+class HarnessError(Exception):
+    pass
 
 
 # ------------------------------------------------------------------ WHEN
@@ -543,7 +592,7 @@ def when(root: str, python: str, ids: list[str], good: str | None = None, lookba
 # ------------------------------------------------------------------ WHY
 _PLUGIN = r'''
 # a pytest plugin: settrace around the test call only, so fixtures, parametrization and class tests all trace
-import json, os, sys, pytest
+import json, os, sys, threading, pytest
 root, out_path = os.environ["FN_TRACE_ROOT"], os.environ["FN_TRACE_OUT"]
 trace = []
 def tr(frame, event, arg):
@@ -561,11 +610,13 @@ def tr(frame, event, arg):
     return tr
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_call(item):
-    sys.settrace(tr)
+    # threads too: an HTTP test client (Starlette, FastAPI) serves the request on a portal thread, and
+    # sys.settrace alone saw "no source line" on a real project (mealie, 2026-09-24)
+    sys.settrace(tr); threading.settrace(tr)
     try:
         yield
     finally:
-        sys.settrace(None)
+        sys.settrace(None); threading.settrace(None)
         json.dump({"trace": trace}, open(out_path, "w"))
 '''
 
@@ -693,25 +744,50 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
     if extra_args:
         o.extra_args = list(o.extra_args) + list(extra_args)
     tell = progress or (lambda stage, detail="": None)
-    tell("suite", "running the suite")
+    tell("suite", "one run of the whole suite, with per-test coverage")
+    sp, out = {}, ""
     try:
-        fails, out = o.failing_output()
+        sp = spectrum(root, python, [], o.extra_args)
+        out = getattr(spectrum, "last_output", "")
+        if "No module named pytest" in out:
+            raise HarnessError(out)
+    except HarnessError:
+        L.status = "harness"
+        L.notes.append("the interpreter running your suite has no pytest, so no test has been judged.\n"
+                       f"  interpreter: {python}\n  fix: point fluidnet at your project's interpreter --\n"
+                       "       fluidnet locate . --python /path/to/venv/bin/python\n"
+                       "  (or install pytest into the interpreter above)"); return L
     except Exception as e:
-        L.status = "harness"; L.notes.append(str(e)[:200]); return L
-    if not fails:
+        L.notes.append(f"spectrum lane could not run ({type(e).__name__})")
+    failing_all = list(getattr(spectrum, "last_failing", []) or [])
+    if getattr(spectrum, "no_cov", False) or (not sp and not failing_all and getattr(spectrum, "last_rc", 0) not in (0, 1, 5)):
+        # coverage is unavailable here (pytest-cov missing, or the run could not collect): the old path,
+        # which runs the suite again without it and says why the law cannot rule
+        sp = {}
+        tell("suite", "running the suite without coverage")
+        try:
+            fails, out = o.failing_output()
+        except Exception as e:
+            L.status = "harness"; L.notes.append(str(e).replace("fluidfix ...", "fluidnet locate .")
+                                                 .replace("point fluidfix at", "point fluidnet at")); return L
+        if not fails:
+            return L
+        failing_all = _failing_ids(out)
+    if not failing_all:
         return L
     L.status = "red"
-    L.failing = _failing_ids(out)
-    tell("where", "reading the failure and the lines it executed")
-    L.where, notes = where(o, out, top_files)
-    L.notes += notes
-    tell("candidates", " ".join(dict.fromkeys(f.file for f in L.where)))
-    tell("spectrum", "per-test coverage over the whole suite")
-    try:
-        sp = spectrum(root, python, L.failing, o.extra_args)
-    except Exception as e:
-        sp, _ = {}, L.notes.append(f"spectrum lane could not run ({type(e).__name__})")
-    L.failing_all = list(getattr(spectrum, "last_failing", []) or []) or list(L.failing)
+    L.failing = failing_all[:1]
+    L.failing_all = failing_all
+    out = _first_failure(out, L.failing[0])
+    if sp:
+        # every line the failing test executed enters the pool below, each with its bits measured; the
+        # candidate-file packet of the old path is only needed when there is no coverage to measure from
+        sp = spectrum_for(sp, L.failing)
+    else:
+        tell("where", "reading the failure and the lines it executed")
+        L.where, notes = where(o, out, top_files)
+        L.notes += notes
+        tell("candidates", " ".join(dict.fromkeys(f.file for f in L.where)))
     if sp:
         best = max(v[0] for v in sp.values())
         seen = {(f.file, f.line): f for f in L.where}

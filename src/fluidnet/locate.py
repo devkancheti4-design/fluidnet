@@ -797,6 +797,17 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
             if (rel, ln) in seen:
                 seen[(rel, ln)].bits.update({"EF_ALL": int(ef == F and F > 0), "EP_NONE": int(ep == 0 and ef > 0),
                                              "IMPORT": int(ef == 0 and ep == 0)})
+            if ef == 0 and ep == 0 and (rel, ln) not in seen:
+                # ran only at import: a module-level constant or table the failing test never "executes" but
+                # depends on. The law keeps IMPORT lines (R0), so they must be in the pool — the single-run
+                # refactor dropped them and the "data, not code" adversarial case went from rank 2.5 to a miss
+                src = _src_line(root, rel, ln)
+                if src.strip() and not src.strip().startswith(("def ", "class ", "import ", "from ", "#", '"""', "@")):
+                    f = Finding(rel, ln, src, ["import-time"], 0)
+                    f.bits.update({"EF_ALL": 0, "EP_NONE": 0, "IMPORT": 1})
+                    f.bits.update(_line_bits(root, out, rel, ln, src, cache))
+                    f.lanes += [b.lower() for b in ("FRAME", "LITERAL", "RECENT") if f.bits.get(b)]; L.where.append(f)
+                continue
             if ef == 0:
                 continue
             tag = f"spectrum {score:.2f} (ef {ef}, ep {ep})"

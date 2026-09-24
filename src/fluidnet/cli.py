@@ -40,7 +40,7 @@ def cmd_watch(a) -> int:
             print("note: this buggy has no mutation lane (PyPI buggy-cli 0.1.0) — install it from "
                   "https://github.com/devkancheti4-design/buggy for the lane that finds the line\n")
         r = watch_with_buggy(a.root, a.net, commit=a.commit, python=a.python, jobs=a.jobs,
-                             mutate_seconds=a.mutate_seconds, top_files=a.top_files)
+                             mutate_seconds=a.mutate_seconds, top_files=a.top_files, fallback=not a.no_fallback)
     for name, secs, what in r.get("stages", []):
         print(f"  {name:44} {secs:>7.1f}s  {what}")
     if r.get("order"):
@@ -276,6 +276,8 @@ def main(argv=None) -> int:
     w.add_argument("-j", "--jobs", type=int, default=1, help="buggy's mutation workers (default 1: light on memory)")
     w.add_argument("--mutate-seconds", type=int, default=240, help="buggy's mutation lane budget")
     w.add_argument("--top-files", type=int, default=3, help="how many of buggy's files the nets search")
+    w.add_argument("--no-fallback", action="store_true",
+                   help="when buggy's files lead nowhere, stop instead of letting fluidnet search alone")
     w.add_argument("--python"); w.set_defaults(fn=cmd_watch)
 
     c = sub.add_parser("certify", help="judge a fix nobody here wrote under the repo's own suite")

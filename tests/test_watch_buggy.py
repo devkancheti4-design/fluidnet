@@ -19,6 +19,7 @@ def test_files_ordered_by_kind_of_evidence_and_vetoes_skipped():
     assert L.files == ["pkg/a.py", "pkg/b.py", "pkg/c.py", "pkg/d.py"]        # experiment, commit, coverage, omission
     assert "pkg/z.py" not in L.files                                           # rank 0 is a veto
     assert L.repairs[0]["edit"] == "<= → <" and L.commit == "abc1234def" and L.seconds == 12.5
+    assert L.lines == {"pkg/a.py": [2, 4], "pkg/c.py": [9], "pkg/d.py": [1]}           # vetoed lines never focus
     assert leads_from(BUGGY_JSON, top_files=2).files == ["pkg/a.py", "pkg/b.py"]
 
 
@@ -74,3 +75,37 @@ def test_end_to_end_buggy_proposes_fluidnet_certifies(repo_factory, tmp_path):
     assert any(name == "certify buggy's repair" and "CERTIFIED" in what for name, _, what in r["stages"])
     assert "+ return a < b" in r["outcomes"][0].output
     assert (root / "pkg/mod.py").read_bytes() == before          # dry-run: certified, reported, not applied
+
+
+def test_a_focused_fix_that_fails_certification_is_rejected_and_the_file_is_searched(monkeypatch, tmp_path):
+    """buggy's help goes ahead only if fluidnet certifies what it led to."""
+    (tmp_path / "pkg").mkdir(); (tmp_path / "pkg/a.py").write_text("x = 1\n")
+    leads = Leads(files=["pkg/a.py"], lines={"pkg/a.py": [1]}, status="red")
+    calls = []
+    monkeypatch.setattr(overseer, "buggy_leads", lambda *a, **k: leads)
+    monkeypatch.setattr(overseer, "fluidfix_has_focus", lambda: True)
+    monkeypatch.setattr(overseer, "score", lambda root, nets: [overseer.NetScore("net.py", 1, 1)])
+    def fake_repair(root, net, rel, commit, python=None, focus=None):
+        calls.append("focus" if focus else "file")
+        return overseer.Outcome("net.py", "repaired" if focus else "refused", "diff", 0, "x = 2\n" if focus else "")
+    monkeypatch.setattr(overseer, "repair_file", fake_repair)
+    import fluidnet.certify as C
+    monkeypatch.setattr(C, "certify", lambda *a, **k: C.Certificate(verdict="COLLATERAL", why="broke test_b"))
+    r = watch_with_buggy(tmp_path, ["net.py"])
+    assert calls == ["focus", "file"]                                   # rejected, then the whole file
+    assert r["winner"] is None
+    assert any(n == "certify the fix buggy's focus found" and w == "COLLATERAL" for n, _, w in r["stages"])
+    assert (tmp_path / "pkg/a.py").read_text() == "x = 1\n"             # nothing uncertified was kept
+
+
+def test_when_buggys_files_lead_nowhere_fluidnet_searches_alone(monkeypatch, tmp_path):
+    leads = Leads(files=["pkg/wrong.py"], lines={}, status="red")
+    monkeypatch.setattr(overseer, "buggy_leads", lambda *a, **k: leads)
+    monkeypatch.setattr(overseer, "fluidfix_has_focus", lambda: False)
+    monkeypatch.setattr(overseer, "score", lambda root, nets: [overseer.NetScore("net.py", 1, 1)])
+    monkeypatch.setattr(overseer, "repair_file", lambda *a, **k: overseer.Outcome("net.py", "refused", "", 2))
+    monkeypatch.setattr(overseer, "watch", lambda *a, **k: {"order": [], "outcomes": [], "winner": "net.py"})
+    r = watch_with_buggy(tmp_path, ["net.py"])
+    assert r["winner"] == "net.py" and "searches alone" in r["stages"][-1][0]
+    r = watch_with_buggy(tmp_path, ["net.py"], fallback=False)
+    assert r["winner"] is None

@@ -80,6 +80,7 @@ class Outcome:
     status: str                  # repaired | refused | green | error
     output: str
     exit: int
+    patched: str = ""            # the repaired file's text, when a repair was found
 
 
 def run_net(root: str | Path, net: str, commit: bool, python: str | None = None,
@@ -139,6 +140,7 @@ def buggy_has_mutation(bb: str) -> bool:
 @dataclass
 class Leads:
     files: list = field(default_factory=list)      # buggy's files, best evidence first
+    lines: dict = field(default_factory=dict)      # file -> the lines buggy flagged in it, any lane
     repairs: list = field(default_factory=list)    # buggy's proposed one-token repairs {file, line, was, now, edit}
     seconds: float = 0.0
     commit: str = ""                               # the commit bisect blamed, if it converged
@@ -160,7 +162,13 @@ def leads_from(d: dict, top_files: int = 3) -> Leads:
     for lane in ("where", "omission"):
         for m in d.get(lane) or []:
             if int(m.get("rank", 0) or 0) > 0: take(m["file"])
-    return Leads(files=order[:top_files], repairs=list(d.get("repairs") or []),
+    lines = {}
+    for lane in ("mutation", "where", "omission"):
+        for m in d.get(lane) or []:
+            if int(m.get("rank", 0) or 0) > 0:
+                lines.setdefault(m["file"], set()).add(int(m["line"]))
+    return Leads(files=order[:top_files], lines={f: sorted(v) for f, v in lines.items()},
+                 repairs=list(d.get("repairs") or []),
                  seconds=float(d.get("seconds") or 0), commit=(d.get("when") or {}).get("commit", ""),
                  status=d.get("status", ""))
 
@@ -215,14 +223,22 @@ def _commit(root, rel: str, message: str) -> None:
     subprocess.run(["git", "commit", "-q", "-m", message, "--", rel], cwd=root, capture_output=True)
 
 
-def repair_file(root, net: str | None, rel: str, commit: bool, python: str | None = None) -> Outcome:
+def fluidfix_has_focus() -> bool:
+    """`fluidfix repair --focus` arrived after fluidfix 0.16.0."""
+    r = subprocess.run([fluidfix_bin(), "repair", "--help"], capture_output=True, text=True)
+    return "--focus" in r.stdout
+
+
+def repair_file(root, net: str | None, rel: str, commit: bool, python: str | None = None,
+                focus: list | None = None) -> Outcome:
     """One net, the file named. `fluidfix repair` writes a repair it ships; unless committing, the bytes are
     put back and the repair is reported as a diff."""
     import difflib, json
     f = Path(root) / rel
     before = f.read_bytes()
     cmd = [fluidfix_bin(), "repair", str(root), "--file", rel, "--json"] + \
-          (["--dictionary", net] if net else []) + (["--python", python] if python else [])
+          (["--dictionary", net] if net else []) + (["--python", python] if python else []) + \
+          (["--focus", ",".join(map(str, focus))] if focus else [])
     r = subprocess.run(cmd, capture_output=True, text=True)
     out = (r.stdout or "") + (r.stderr or "")
     after = f.read_bytes()
@@ -240,14 +256,17 @@ def repair_file(root, net: str | None, rel: str, commit: bool, python: str | Non
             _commit(root, rel, f"fluidnet: repair {rel}:{d.get('lineno')} ({Path(net).name if net else 'shipped'})")
         else:
             f.write_bytes(before)
-        return Outcome(net or "shipped", "repaired", diff or out.strip(), 0)
+        scope = d.get("scope", "file")
+        return Outcome(net or "shipped", "repaired",
+                       (diff or out.strip()) + (f"\n(scope: {scope} — unique within these lines only)"
+                                                if scope != "file" else ""), 0, after.decode())
     if after != before:                                  # a refusal leaves the file as found
         f.write_bytes(before)
     return Outcome(net or "shipped", "refused" if r.returncode == 2 else "error", out.strip()[-600:], r.returncode)
 
 
 def watch_with_buggy(root, nets: list[str], commit: bool = False, python: str | None = None,
-                     jobs: int = 1, mutate_seconds: int = 240, top_files: int = 3) -> dict:
+                     jobs: int = 1, mutate_seconds: int = 240, top_files: int = 3, fallback: bool = True) -> dict:
     """buggy locates; fluidnet certifies buggy's proposals, then each net repairs with the file named.
     Falls back to the blind search only when buggy is absent or names no file."""
     import time
@@ -288,15 +307,49 @@ def watch_with_buggy(root, nets: list[str], commit: bool = False, python: str | 
             return {"order": [], "outcomes": [o], "winner": o.net, "stages": stages, "leads": leads,
                     "seconds": round(time.time() - t0, 1)}
     # 2. the taught nets, searching only the files buggy named
+    # Proving a fix unique means judging every candidate in scope. With the whole file as scope, a broad taught
+    # class in a big file is thousands of candidates (a sibling-attribute bug in click's core.py: 35 min, then
+    # refused). With buggy's lines as scope the same bug shipped exactly in 165 s. So: buggy's lines first,
+    # the certificate stating that scope; the whole file only if nothing in them ships.
     order = score(root, nets)
-    for s in order:
-        for rel in leads.files:
-            t1 = time.time()
-            o = repair_file(root, s.dictionary, rel, commit, python)
-            outcomes.append(o)
-            stages.append((f"repair {rel} ({Path(s.dictionary).name})", round(time.time() - t1, 1), o.status))
-            if o.status == "repaired":
-                return {"order": order, "outcomes": outcomes, "winner": s.dictionary, "stages": stages,
-                        "leads": leads, "seconds": round(time.time() - t0, 1)}
+    focused = fluidfix_has_focus()
+    for scope in (("focus", "file") if focused else ("file",)):
+        for s in order:
+            for rel in leads.files:
+                focus = leads.lines.get(rel) if scope == "focus" else None
+                if scope == "focus" and not focus:
+                    continue
+                t1 = time.time()
+                # a fix found through buggy's focus is never committed on the loop's word alone
+                o = repair_file(root, s.dictionary, rel, commit and scope == "file", python, focus=focus)
+                outcomes.append(o)
+                stages.append((f"repair {rel} ({Path(s.dictionary).name}, {scope})", round(time.time() - t1, 1), o.status))
+                if o.status == "repaired" and scope == "focus":
+                    # buggy HELPED find it — so fluidnet certifies it, independently, before buggy's help counts.
+                    # Only a CERTIFIED fix goes ahead; otherwise buggy's help is rejected and the whole file is
+                    # searched as if buggy had never spoken.
+                    c = certify(root, rel, o.patched, python=python or sys.executable)
+                    stages.append(("certify the fix buggy's focus found", c.seconds, c.verdict))
+                    if not c.ok:
+                        o.status = "rejected"
+                        continue
+                    if commit:
+                        (Path(root) / rel).write_text(o.patched, encoding="utf-8")
+                        _commit(root, rel, f"fluidnet: repair {rel} (buggy's focus, certified by fluidnet)")
+                    o.output += "\ncertified by fluidnet: red before, green on the full suite, stable, nothing else broken"
+                if o.status == "repaired":
+                    return {"order": order, "outcomes": outcomes, "winner": s.dictionary, "stages": stages,
+                            "leads": leads, "seconds": round(time.time() - t0, 1)}
+    # buggy's help led nowhere: drop it, and let fluidnet search on its own, as if buggy had never spoken.
+    # Measured 2026-09-24 on click: buggy named core.py, formatting.py and testing.py for a bug in
+    # _textwrap.py; the nets refused all three and, with no fallback, the answer was a refusal that
+    # fluidnet's own search — the file named — reaches exactly in 89 s.
+    if fallback:
+        t2 = time.time()
+        blind = watch(root, nets, commit, python)
+        stages.append(("buggy's files exhausted — fluidnet searches alone", round(time.time() - t2, 1),
+                       f"winner: {blind['winner']}" if blind["winner"] else "refused"))
+        blind.update(stages=stages, leads=leads, seconds=round(time.time() - t0, 1))
+        return blind
     return {"order": order, "outcomes": outcomes, "winner": None, "stages": stages, "leads": leads,
             "seconds": round(time.time() - t0, 1)}

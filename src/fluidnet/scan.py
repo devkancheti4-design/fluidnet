@@ -23,7 +23,7 @@ _SKIP = {".git", ".venv", "venv", "__pycache__", ".pytest_cache", ".fluidfix", "
 STATE = {"projects": [], "queue": [], "current": None, "stage": "idle", "detail": "", "files": [],
          "candidates": [], "log": [], "results": {}, "started": None}
 LOCK = threading.Lock()
-OPTS = {"python": sys.executable, "bisect": True}
+OPTS = {"python": None, "bisect": True}   # None: each project's own interpreter
 
 
 def is_project(p: Path) -> bool:
@@ -56,7 +56,7 @@ def _log(msg: str) -> None:
 
 
 def worker() -> None:
-    from .locate import locate
+    from .locate import locate, project_python
     while True:
         with LOCK:
             name = STATE["queue"].pop(0) if STATE["queue"] else None
@@ -80,7 +80,7 @@ def worker() -> None:
             _log(f"{name}: {stage} {detail}"[:120])
 
         try:
-            L = locate(str(root), python=OPTS["python"], bisect=OPTS["bisect"], progress=tell)
+            L = locate(str(root), python=OPTS["python"] or project_python(str(root)), bisect=OPTS["bisect"], progress=tell)
             res = asdict(L); res.pop("_vetoed_list", None)
             res["where"] = res["where"][:12]
         except Exception as e:
@@ -139,7 +139,7 @@ class H(BaseHTTPRequestHandler):
 
 def serve(workspace: str, port: int = 7777, python: str | None = None, bisect: bool = True) -> int:
     ws = Path(workspace).resolve()
-    OPTS.update(python=python or sys.executable, bisect=bisect)
+    OPTS.update(python=python, bisect=bisect)
     STATE["projects"] = projects(ws)
     if not STATE["projects"]:
         print(f"no projects under {ws} (a project has a .git, a pyproject.toml, or a tests/)"); return 1

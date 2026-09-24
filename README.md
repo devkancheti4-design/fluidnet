@@ -100,6 +100,7 @@ Every one of these happened while building it.
 |---|---|---|
 | `--version` looks right but `doctor` says the property gate is missing | a stale global `fluidfix` earlier on PATH than your venv | use the venv's `bin/fluidfix`, or `pip install -e .` again inside it |
 | refusal after 0 suite runs, *NO-OBSERVATIONS* | `pytest-cov` missing from the interpreter that runs your suite | install it there; `doctor` checks |
+| import errors on a project that is green in your own shell | the suite ran under fluidnet's interpreter, not your project's | a `.venv`/`venv` beside the code is picked up automatically; anything else, pass `--python`; `pytest-cov` must be in *that* venv |
 | "0 tests collected" | `filterwarnings = error` in your pyproject fires at collection | fix the warning, or `--python` a venv where the suite collects |
 | it refuses a bug you know it can fix | the suite was already red before the bug | get green first, or deselect the broken tests |
 | a wrong fix went green and got committed | your test only checks inputs where right and wrong agree | write the property; add a test the fix never used |

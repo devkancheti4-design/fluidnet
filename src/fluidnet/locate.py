@@ -143,6 +143,18 @@ def _assertion_tokens(out: str) -> set[str]:
     return {t for t in toks if t not in {"assert", "where", "and", "or", "not", "in", "is"}}
 
 
+def project_python(root: str) -> str:
+    """The interpreter that owns the project's dependencies: its own virtualenv when there is one
+    (`.venv` or `venv` beside the code), else the interpreter running fluidnet. Every command that runs a
+    project's tests defaults to this — running an enterprise suite with fluidnet's own interpreter is the
+    first thing that goes wrong on a real project (mealie, 2026-09-24)."""
+    for rel in (".venv/bin/python", "venv/bin/python", ".venv/Scripts/python.exe", "venv/Scripts/python.exe"):
+        cand = Path(root, rel)
+        if cand.exists():
+            return str(cand.resolve())
+    return sys.executable
+
+
 def _src_line(root: str, rel: str, ln: int) -> str:
     try:
         return Path(root, rel).read_text(encoding="utf-8").split("\n")[ln - 1]

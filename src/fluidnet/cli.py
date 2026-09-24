@@ -84,8 +84,8 @@ def cmd_mcp(a) -> int:
 
 
 def cmd_locate(a) -> int:
-    from .locate import locate
-    L = locate(a.root, python=a.python or sys.executable, good=a.good, bisect=not a.no_bisect,
+    from .locate import locate, project_python
+    L = locate(a.root, python=a.python or project_python(a.root), good=a.good, bisect=not a.no_bisect,
                trace=not a.no_trace)
     if a.json:
         from dataclasses import asdict
@@ -146,7 +146,7 @@ def cmd_float(a) -> int:
     """Keep .fluidfix/locate.json fresh — on every source change, and every --interval seconds while red —
     and show it as a floating icon under whichever Python here has Tk."""
     import subprocess as sp, threading, time as _t
-    from .locate import locate
+    from .locate import locate, project_python
     home = Path.home() / ".fluidnet"; home.mkdir(exist_ok=True)
     target_file, scan_now = home / "target", home / "scan-now"
     root = str(Path(a.root).resolve()); target_file.write_text(root)
@@ -185,7 +185,7 @@ def cmd_float(a) -> int:
                 last = now
                 (fx / "locating").touch()
                 try:
-                    L = locate(root, python=a.python or sys.executable, bisect=not a.no_bisect)
+                    L = locate(root, python=a.python or project_python(root), bisect=not a.no_bisect)
                     red = L.status == "red"
                     print(f"[{_t.strftime('%H:%M:%S')}] {L.status}" + (f": {L.where[0].file}:{L.where[0].line} ({len(L.where[0].lanes)} lanes)" if red and L.where else ""))
                 finally:

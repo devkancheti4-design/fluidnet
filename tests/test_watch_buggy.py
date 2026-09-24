@@ -31,12 +31,18 @@ def test_apply_repair_only_when_the_line_still_reads_what_buggy_saw(tmp_path):
     assert apply_repair(tmp_path, BUGGY_JSON["repairs"][0]) is None
 
 
-@pytest.mark.parametrize("status", ["green", "harness"])
-def test_green_and_harness_do_nothing(monkeypatch, tmp_path, status):
-    monkeypatch.setattr(overseer, "buggy_leads", lambda *a, **k: Leads(status=status))
-    monkeypatch.setattr(overseer, "watch", lambda *a, **k: pytest.fail("no blind search on " + status))
+def test_green_does_nothing(monkeypatch, tmp_path):
+    monkeypatch.setattr(overseer, "buggy_leads", lambda *a, **k: Leads(status="green"))
+    monkeypatch.setattr(overseer, "watch", lambda *a, **k: pytest.fail("no search on a green suite"))
     r = watch_with_buggy(tmp_path, [])
-    assert r["winner"] is None and r["outcomes"] == [] and r["status"] == status
+    assert r["winner"] is None and r["outcomes"] == [] and r["status"] == "green"
+
+
+def test_buggys_harness_never_stops_fluidnet_judging_for_itself(monkeypatch, tmp_path):
+    monkeypatch.setattr(overseer, "buggy_leads", lambda *a, **k: Leads(status="harness"))
+    monkeypatch.setattr(overseer, "watch", lambda *a, **k: {"order": [], "outcomes": [], "winner": "net.py"})
+    r = watch_with_buggy(tmp_path, [])
+    assert r["winner"] == "net.py" and "harness" in r["stages"][0][2] and "alone" in r["stages"][0][2]
 
 
 def test_without_buggy_the_nets_search_blind(monkeypatch, tmp_path):
@@ -109,3 +115,15 @@ def test_when_buggys_files_lead_nowhere_fluidnet_searches_alone(monkeypatch, tmp
     assert r["winner"] == "net.py" and "searches alone" in r["stages"][-1][0]
     r = watch_with_buggy(tmp_path, ["net.py"], fallback=False)
     assert r["winner"] is None
+
+
+def test_certifier_reads_test_ids_with_spaces_in_their_parameters():
+    from fluidnet import certify as C
+    class O:
+        root, extra_args, python = ".", [], "python"
+        def clear_pyc(self): pass
+        def run(self, args):
+            return 1, ("FAILED tests/t.py::test_x[no-wrap mark-sentence < max] - AssertionError\n"
+                       "FAILED tests/t.py::test_x[-digit after dot] - AssertionError\n")
+    green, ids = C.failing_ids(O())
+    assert not green and ids == {"test_x[no-wrap mark-sentence < max]", "test_x[-digit after dot]"}

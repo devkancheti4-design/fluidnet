@@ -40,10 +40,13 @@ def failing_ids(o: Oracle) -> tuple[bool, set[str]]:
     _check_harness(rc, o.extra_args, out, o.root, o.python)
     ids = set()
     for l in out.splitlines():
-        if l.startswith(("FAILED", "ERROR")):
-            parts = l.split()
-            if len(parts) > 1:
-                ids.add(parts[1].split("::")[-1].strip())
+        if l.startswith(("FAILED ", "ERROR ")):
+            # a test id can hold spaces inside its parameter brackets (`test_x[no-wrap mark-sentence < max]`);
+            # splitting on whitespace cut it at the first one and merged distinct parameters into one id.
+            # pytest separates the id from its message with " - ".
+            nodeid = l.split(" ", 1)[1].split(" - ", 1)[0].strip()
+            if nodeid:
+                ids.add(nodeid.split("::", 1)[-1])
     return rc == 0, ids
 
 

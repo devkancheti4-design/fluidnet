@@ -277,16 +277,21 @@ def watch_with_buggy(root, nets: list[str], commit: bool = False, python: str | 
     # buggy's status contract: green (pytest exited 0), red, or harness (the suite could not be judged —
     # nothing collected, a collection or internal error, a killed run). harness means DO NOTHING: it is not
     # green, and a blind search over a suite that cannot be judged would only produce refusals.
-    if leads is not None and leads.status in ("green", "harness"):
+    # green is pytest's own exit 0: nothing to do. harness is buggy's word that IT could not judge the suite —
+    # and buggy only ever helps, so its verdict never stops fluidnet from judging for itself. Measured
+    # 2026-09-24 on click: parametrized test ids with spaces (`[no-wrap mark-sentence < max]`) made buggy
+    # read zero failing tests out of a red suite and answer `harness` in 0 s. fluidnet's own guard has its own
+    # harness check; a suite that truly cannot be judged still gets nothing attempted there.
+    if leads is not None and leads.status == "green":
         return {"order": [], "outcomes": [], "winner": None, "leads": leads, "seconds": round(time.time() - t0, 1),
-                "stages": [("locate (buggy)", round(leads.seconds, 1),
-                            "suite green — nothing to do" if leads.status == "green" else
-                            "the suite could not be judged (harness) — nothing attempted")],
-                "status": leads.status}
+                "stages": [("locate (buggy)", round(leads.seconds, 1), "suite green — nothing to do")],
+                "status": "green"}
     if leads is None or not leads.files:
-        why = "buggy is not installed" if leads is None else f"buggy named no file ({leads.status or 'no evidence'})"
+        why = ("buggy is not installed" if leads is None else
+               "buggy could not judge the suite (harness)" if leads.status == "harness" else
+               f"buggy named no file ({leads.status or 'no evidence'})")
         r = watch(root, nets, commit, python)
-        r.update(stages=[("locate", 0.0, why + " — blind search")], leads=leads, seconds=round(time.time() - t0, 1))
+        r.update(stages=[("locate", 0.0, why + " — fluidnet searches alone")], leads=leads, seconds=round(time.time() - t0, 1))
         return r
     stages.append(("locate (buggy)", round(leads.seconds, 1),
                    f"files {', '.join(leads.files)}; {len(leads.repairs)} proposed repair(s)"

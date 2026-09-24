@@ -127,3 +127,9 @@ def test_certifier_reads_test_ids_with_spaces_in_their_parameters():
                        "FAILED tests/t.py::test_x[-digit after dot] - AssertionError\n")
     green, ids = C.failing_ids(O())
     assert not green and ids == {"test_x[no-wrap mark-sentence < max]", "test_x[-digit after dot]"}
+
+
+def test_focus_is_buggys_top_findings_not_every_scored_line():
+    d = {"status": "red", "where": [{"file": "pkg/a.py", "line": str(n), "rank": "4"} for n in range(1, 601)]}
+    L = leads_from(d)
+    assert L.lines["pkg/a.py"] == list(range(1, 9))        # the 8 buggy's report shows, not all 600

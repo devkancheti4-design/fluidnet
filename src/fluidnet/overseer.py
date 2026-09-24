@@ -162,9 +162,14 @@ def leads_from(d: dict, top_files: int = 3) -> Leads:
     for lane in ("where", "omission"):
         for m in d.get(lane) or []:
             if int(m.get("rank", 0) or 0) > 0: take(m["file"])
+    # buggy's POINTING is its top findings per lane — the ones its own report shows a person (8, 8, 5), each
+    # list already ranked. `buggy locate --json` prints every scored line; taking all of them handed a repair
+    # a 600-line "focus" in click's core.py, which searched like the whole file (measured 2026-09-24: 55+
+    # minutes, against 165 s on buggy's 11 flagged lines).
+    TOP = {"mutation": 8, "where": 8, "omission": 5}
     lines = {}
-    for lane in ("mutation", "where", "omission"):
-        for m in d.get(lane) or []:
+    for lane, k in TOP.items():
+        for m in (d.get(lane) or [])[:k]:
             if int(m.get("rank", 0) or 0) > 0:
                 lines.setdefault(m["file"], set()).add(int(m["line"]))
     return Leads(files=order[:top_files], lines={f: sorted(v) for f, v in lines.items()},

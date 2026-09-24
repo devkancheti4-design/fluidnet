@@ -20,6 +20,26 @@ repository: the property refuses wrong candidates before a single test runs, the
 rejects the rest, and every rejection restores the file byte for byte. Nine shapes ship; seven more are
 yours per dictionary, and you can run as many dictionaries as you like (`fluidnet watch`).
 
+### buggy finds, the nets fix — `fluidnet watch`
+The guard knows *how* to fix a taught shape; on a real repository what it lacks is *where*. Measured on
+click, a strictness regression at `parser.py:437` with 92 failing tests: the blind guard searched three
+other files and refused at its 300 s budget without opening `parser.py`. [buggy](https://github.com/devkancheti4-design/buggy)'s
+mutation lane put that line first in 279 s and proposed `<=` → `<`. So `watch` asks buggy first:
+
+1. **buggy locates** — its files, best evidence first: the mutation experiment and the introducing commit,
+   then coverage, then where missing code belongs.
+2. **fluidnet certifies buggy's proposed repair** — a patch fluidnet did not write, judged by the same
+   gates as its own: red before, green on the full suite, stable, nothing else broken, file restored.
+3. **each net repairs with the file named** — `fluidfix repair --file` on buggy's files only.
+4. only without buggy, or when buggy names no file, the nets search blind as before. A suite buggy says it
+   cannot judge (`harness`) gets nothing attempted.
+
+```bash
+pip install "buggy-cli @ git+https://github.com/devkancheti4-design/buggy@main"   # the mutation lane is not in PyPI 0.1.0
+fluidnet watch . --net rules.py            # dry-run: the certified repair is reported, the tree untouched
+fluidnet watch . --net rules.py --commit   # -j N for more mutation workers (default 1, light on memory)
+```
+
 ### The locator — `fluidnet locate`
 When the suite goes red and you don't know where. Three questions, answered with evidence: **where**
 (the lines the failing test executed, the frames the failure names, the values the assertion mentions,

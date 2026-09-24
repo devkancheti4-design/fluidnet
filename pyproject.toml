@@ -14,6 +14,9 @@ dependencies = [
 
 [project.optional-dependencies]
 mcp = ["mcp>=1.0"]
+# buggy locates for `fluidnet watch`. The mutation lane is on GitHub HEAD, not yet in PyPI 0.1.0:
+#   pip install "buggy-cli @ git+https://github.com/devkancheti4-design/buggy@main"
+buggy = ["buggy-cli>=0.1.0"]
 
 [project.scripts]
 fluidnet = "fluidnet.cli:main"

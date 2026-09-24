@@ -30,20 +30,35 @@ teach_property(4, "one sentence a maintainer can review", my_property)
 
 
 def cmd_watch(a) -> int:
-    from .overseer import watch
-    r = watch(a.root, a.net, commit=a.commit, python=a.python)
-    print("routing, by how much of the repository each net recognises:")
-    for s in r["order"]:
-        print(f"  {s.dictionary:40} {s.classes} classes  {s.hits:>5} signal hits  {len(s.files)} files")
-    print()
-    for o in r["outcomes"]:
-        print(f"--- net {o.net}: {o.status} (exit {o.exit})")
-        print("\n".join("    " + l for l in o.output.splitlines()[-8:]))
-    print()
-    if r["winner"]:
-        print(f"winner: {r['winner']}")
+    from .overseer import watch, watch_with_buggy, buggy_bin, buggy_has_mutation
+    if a.no_buggy:
+        r = watch(a.root, a.net, commit=a.commit, python=a.python)
+        r.setdefault("stages", [])
+    else:
+        bb = buggy_bin()
+        if bb and not buggy_has_mutation(bb):
+            print("note: this buggy has no mutation lane (PyPI buggy-cli 0.1.0) — install it from "
+                  "https://github.com/devkancheti4-design/buggy for the lane that finds the line\n")
+        r = watch_with_buggy(a.root, a.net, commit=a.commit, python=a.python, jobs=a.jobs,
+                             mutate_seconds=a.mutate_seconds, top_files=a.top_files)
+    for name, secs, what in r.get("stages", []):
+        print(f"  {name:44} {secs:>7.1f}s  {what}")
+    if r.get("order"):
+        print("\nnets, by how much of the repository each recognises:")
+        for s in r["order"]:
+            print(f"  {s.dictionary:40} {s.classes} classes  {s.hits:>5} signal hits")
+    for o in r.get("outcomes", []):
+        if o.status == "repaired":
+            print(f"\n--- {o.net}: repaired")
+            print("\n".join("    " + l for l in o.output.splitlines()[-12:]))
+    if "seconds" in r:
+        print(f"\ntotal {r['seconds']}s")
+    if r.get("winner"):
+        print(f"winner: {r['winner']}" + ("" if a.commit else "  (dry-run: the tree is as you left it)"))
         return 0
-    print("every net refused; the tree is as you left it")
+    if r.get("status") == "green":
+        return 0
+    print("nothing shipped; the tree is as you left it")
     return 2
 
 
@@ -252,11 +267,15 @@ def main(argv=None) -> int:
     p.add_argument("--version", action="version", version=f"fluidnet {__version__}")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    w = sub.add_parser("watch", help="route a failing suite to the net whose taught shapes match; one "
-                                     "fluidfix process per net")
+    w = sub.add_parser("watch", help="buggy locates, fluidnet certifies buggy's proposed repair, then each net "
+                                     "repairs with the file named; blind search only without buggy")
     w.add_argument("root"); w.add_argument("--net", action="append", required=True,
                                             help="a dictionary file; repeat for each net")
     w.add_argument("--commit", action="store_true", help="commit the winning repair (default: dry-run)")
+    w.add_argument("--no-buggy", action="store_true", help="skip buggy: the nets search blind, as before")
+    w.add_argument("-j", "--jobs", type=int, default=1, help="buggy's mutation workers (default 1: light on memory)")
+    w.add_argument("--mutate-seconds", type=int, default=240, help="buggy's mutation lane budget")
+    w.add_argument("--top-files", type=int, default=3, help="how many of buggy's files the nets search")
     w.add_argument("--python"); w.set_defaults(fn=cmd_watch)
 
     c = sub.add_parser("certify", help="judge a fix nobody here wrote under the repo's own suite")

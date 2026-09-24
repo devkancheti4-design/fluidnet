@@ -46,3 +46,15 @@ def test_a_missing_interpreter_is_not_green(tmp_path):
 def test_green_still_means_green(tmp_path):
     L = run(build_repo(tmp_path / "r", MOD, "from pkg.mod import f\n\ndef test_f():\n    assert f() == 1\n"))
     assert L.status == "green"
+
+
+def test_a_parametrized_id_with_spaces_is_still_red(tmp_path):
+    """Found by a peer on click: `test_x[no-wrap mark-sentence < max]` — the old \\S+? id pattern stopped at the
+    first space, no id was read, and a red suite came back as 'cannot judge' (and before that, green)."""
+    root = build_repo(tmp_path / "r", MOD, "import pytest\nfrom pkg.mod import f\n\n"
+                      "@pytest.mark.parametrize('s', ['no-wrap mark-sentence < max', 'plain'])\n"
+                      "def test_f(s):\n    assert f() == (1 if s == 'plain' else 2)\n")
+    L = run(root)
+    assert L.status == "red", L.render()
+    assert L.failing == ["tests/test_mod.py::test_f[no-wrap mark-sentence < max]"], L.failing
+    assert L.where and L.where[0].file == "pkg/mod.py", L.render()

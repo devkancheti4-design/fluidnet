@@ -33,7 +33,9 @@ from fluidfix.localize import build_packet
 from fluidfix.oracle import Oracle
 
 _FRAME = re.compile(r"([\w./\\-]+\.py)[\":,]+\s*(?:line\s+)?(\d+)")
-_FAILED = re.compile(r"^(?:FAILED|ERROR) (\S+?)(?: - .*)?$", re.M)
+# a summary line is "FAILED <id> - <message>" or "ERROR <id>"; the id may contain SPACES (a parametrized id
+# such as test_x[no-wrap mark-sentence < max]), so it is everything up to pytest's " - " separator, never \S+
+_FAILED = re.compile(r"^(?:FAILED|ERROR) (.+?)(?: - .*)?$", re.M)
 _CALL = re.compile(r"\b([A-Za-z_]\w*)\(")
 _LITERAL = re.compile(r"(?<![\w.])(-?\d+(?:\.\d+)?|\"[^\"]*\"|'[^']*')")
 

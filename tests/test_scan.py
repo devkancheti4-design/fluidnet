@@ -19,7 +19,7 @@ def test_scan_all_and_status(repo_factory, tmp_path):
     srv = ThreadingHTTPServer(("127.0.0.1", 0), scan.H); port = srv.server_address[1]
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     try:
-        req = urllib.request.Request(f"http://127.0.0.1:{port}/api/scan?all=1", method="POST")
+        req = urllib.request.Request(f"http://127.0.0.1:{port}/api/scan?all=1", method="POST", headers={"X-Buggy": "scan"})
         assert urllib.request.urlopen(req).status == 202
         for _ in range(120):
             s = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/api/status"))

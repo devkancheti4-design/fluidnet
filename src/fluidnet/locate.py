@@ -317,6 +317,11 @@ class HarnessError(Exception):
     pass
 
 
+def _tail(out: str, n: int = 4) -> str:
+    lines = [l for l in (out or "").strip().splitlines() if l.strip()]
+    return "\n  ".join(lines[-n:]) if lines else "(no output)"
+
+
 # ------------------------------------------------------------------ WHEN
 def _purge_pyc(tree: Path) -> None:
     for d in tree.rglob("__pycache__"):
@@ -748,10 +753,11 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
         o.extra_args = list(o.extra_args) + list(extra_args)
     tell = progress or (lambda stage, detail="": None)
     tell("suite", "one run of the whole suite, with per-test coverage")
-    sp, out = {}, ""
+    sp, out, rc = {}, "", None
+    spectrum.last_rc = None; spectrum.last_failing = []; spectrum.no_cov = False
     try:
         sp = spectrum(root, python, [], o.extra_args)
-        out = getattr(spectrum, "last_output", "")
+        out = getattr(spectrum, "last_output", ""); rc = getattr(spectrum, "last_rc", None)
         if "No module named pytest" in out:
             raise HarnessError(out)
     except HarnessError:
@@ -761,23 +767,44 @@ def locate(root: str, python: str = sys.executable, good: str | None = None, bis
                        "       fluidnet locate . --python /path/to/venv/bin/python\n"
                        "  (or install pytest into the interpreter above)"); return L
     except Exception as e:
-        L.notes.append(f"spectrum lane could not run ({type(e).__name__})")
+        # the suite could not even be run — a missing interpreter, a timeout, a crash of the runner. That is
+        # a verdict about the harness, never "green".
+        L.status = "harness"; L.notes.append(f"the suite could not be run: {type(e).__name__}: {str(e)[:160]}"); return L
     failing_all = list(getattr(spectrum, "last_failing", []) or [])
-    if getattr(spectrum, "no_cov", False) or (not sp and not failing_all and getattr(spectrum, "last_rc", 0) not in (0, 1, 5)):
-        # coverage is unavailable here (pytest-cov missing, or the run could not collect): the old path,
-        # which runs the suite again without it and says why the law cannot rule
+    if getattr(spectrum, "no_cov", False):
+        # coverage is unavailable here (pytest-cov missing): the old path runs the suite again without it and
+        # says why the law cannot rule
         sp = {}
         tell("suite", "running the suite without coverage")
         try:
-            fails, out = o.failing_output()
+            o.clear_pyc(); rc, out = o.run(["-x", "--tb=long"])
+            if "No module named pytest" in out:
+                raise HarnessError("the interpreter running your suite has no pytest, so no test has been judged.\n"
+                                   f"  interpreter: {python}\n  fix: fluidnet locate . --python /path/to/venv/bin/python")
         except Exception as e:
-            L.status = "harness"; L.notes.append(str(e).replace("fluidfix ...", "fluidnet locate .")
-                                                 .replace("point fluidfix at", "point fluidnet at")); return L
-        if not fails:
-            return L
+            L.status = "harness"; L.notes.append(str(e)); return L
         failing_all = _failing_ids(out)
-    if not failing_all:
+    # THE VERDICT FOLLOWS THE EXIT CODE OF THE RUN THAT JUDGED. "green" means pytest exited 0, nothing else.
+    # Every other outcome names itself. Measured 2026-09-24 (buggy 68ce8cf): a suite with no tests, a
+    # conftest that broke pytest, and a test that killed the process were all being reported "suite green".
+    if rc == 0:
         return L
+    if rc == 1 and failing_all:
+        pass                                                        # red; the tests are named below
+    elif rc == 2:
+        errs = [l.strip() for l in out.splitlines() if l.startswith(("ERROR ", "E   "))][:6]
+        L.status = "harness"; L.notes.append("the tests could not be collected, so no test was judged:\n  " + "\n  ".join(errs or [_tail(out)])); return L
+    elif rc == 5:
+        L.status = "harness"; L.notes.append("pytest collected no tests, so there is nothing to judge (testpaths? file naming?)"); return L
+    elif rc == 3:
+        L.status = "harness"; L.notes.append("pytest hit an internal error (a broken conftest or plugin), so no test was judged:\n  " + _tail(out)); return L
+    elif rc == 4:
+        L.status = "harness"; L.notes.append("pytest refused the command line (usage error), so no test was judged:\n  " + _tail(out)); return L
+    elif rc == 1:
+        L.status = "harness"; L.notes.append("the suite failed but no failing test could be read from its output:\n  " + _tail(out)); return L
+    else:
+        L.status = "harness"
+        L.notes.append(f"the test process ended with exit {rc} before pytest could report (a test killed it, or a timeout):\n  " + _tail(out)); return L
     L.status = "red"
     L.failing = failing_all[:1]
     L.failing_all = failing_all

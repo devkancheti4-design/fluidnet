@@ -101,7 +101,17 @@ class H(BaseHTTPRequestHandler):
         self.send_response(code); self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
 
+    def _local(self) -> bool:
+        """Only a browser that typed 127.0.0.1 or localhost gets an answer: a page on another site that was
+        rebound to this address by DNS carries its own Host header and is refused."""
+        host = (self.headers.get("Host") or "").split(":")[0]
+        if host in ("127.0.0.1", "localhost", "[::1]"):
+            return True
+        self._json({"error": "refused: not a local origin"}, 403); return False
+
     def do_GET(self):
+        if not self._local():
+            return
         u = urlparse(self.path); q = parse_qs(u.query)
         if u.path == "/":
             b = PAGE.encode(); self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -115,10 +125,11 @@ class H(BaseHTTPRequestHandler):
         if u.path == "/api/source":
             name, rel, line = q.get("project", [""])[0], q.get("file", [""])[0], int(q.get("line", ["1"])[0])
             proj = next((p for p in STATE["projects"] if p["name"] == name), None)
-            if not proj or ".." in rel:
+            target = _confined(proj["path"], rel) if proj else None
+            if target is None:
                 return self._json({"error": "no"}, 404)
             try:
-                lines = Path(proj["path"], rel).read_text(encoding="utf-8").split("\n")
+                lines = target.read_text(encoding="utf-8").split("\n")
             except OSError:
                 return self._json({"error": "unreadable"}, 404)
             lo, hi = max(1, line - 6), min(len(lines), line + 6)
@@ -126,6 +137,10 @@ class H(BaseHTTPRequestHandler):
         self._json({"error": "not found"}, 404)
 
     def do_POST(self):
+        if not self._local():
+            return
+        if self.headers.get("X-Buggy") != "scan":
+            return self._json({"error": "refused: missing X-Buggy header"}, 403)
         u = urlparse(self.path); q = parse_qs(u.query)
         if u.path == "/api/scan":
             names = [p["name"] for p in STATE["projects"]] if q.get("all") else q.get("project", [])
@@ -135,6 +150,22 @@ class H(BaseHTTPRequestHandler):
                         STATE["queue"].append(n)
             return self._json({"queued": names}, 202)
         self._json({"error": "not found"}, 404)
+
+
+def _confined(project: str, rel: str):
+    """The file, only if it is a .py inside the project — resolved, so neither an absolute path nor `..`
+    nor a symlink can reach outside (an absolute `file=` used to: Path(root, "/etc/passwd") is /etc/passwd)."""
+    try:
+        root = Path(project).resolve(); target = (root / rel).resolve()
+    except (OSError, ValueError):
+        return None
+    if not rel or Path(rel).is_absolute() or target.suffix != ".py" or not target.is_file():
+        return None
+    if root not in target.parents:
+        return None
+    if any(part in _SKIP for part in target.relative_to(root).parts):
+        return None
+    return target
 
 
 def serve(workspace: str, port: int = 7777, python: str | None = None, bisect: bool = True) -> int:
@@ -197,7 +228,7 @@ function walk(list,ms){clearInterval(walkTimer);let i=0;bug.className='walk';wal
 function stopWalk(){clearInterval(walkTimer);walkTimer=null;bug.className='idle'}
 async function loadProjects(){projs=await (await fetch('/api/projects')).json();renderProjects({})}
 function renderProjects(results,current,queue){$('#projs').innerHTML=projs.map(p=>{const r=results[p.name];const c=r?(r.status==='red'?'red':(r.status==='green'?'grn':'amb')):(current===p.name?'amb':'');return `<div class="proj ${sel===p.name?'cur':''}" data-n="${p.name}"><span class="dot ${c}"></span><span class="n">${p.name}</span><span class="c">${p.files} files${(queue||[]).includes(p.name)?' · queued':''}</span><button class="rs" title="scan">↻</button></div>`}).join('');
-document.querySelectorAll('.proj').forEach(el=>{el.onclick=()=>{sel=el.dataset.n;shown=null;renderProjects(results,current,queue)};el.querySelector('.rs').onclick=e=>{e.stopPropagation();sel=el.dataset.n;shown=null;fetch('/api/scan?project='+encodeURIComponent(sel),{method:'POST'})}})}
+document.querySelectorAll('.proj').forEach(el=>{el.onclick=()=>{sel=el.dataset.n;shown=null;renderProjects(results,current,queue)};el.querySelector('.rs').onclick=e=>{e.stopPropagation();sel=el.dataset.n;shown=null;fetch('/api/scan?project='+encodeURIComponent(sel),{method:'POST',headers:{'X-Buggy':'scan'}})}})}
 function renderGrid(files,cands){$('#grid').querySelectorAll('.tile').forEach(t=>t.remove());const cs=new Set(cands||[]);files.forEach(f=>{const t=document.createElement('div');t.className='tile'+(f.startsWith('tests/')||f.startsWith('test/')?' test':'')+(cs.has(f)?' cand':'');t.dataset.f=f;$('#grid').appendChild(t)})}
 function show(name){shown=name}
 async function tick(){const s=await (await fetch('/api/status')).json();renderProjects(s.results,s.current,s.queue);$('#st').textContent=s.current?`${s.current} · ${s.stage} ${s.detail||''}`:(s.queue.length?`queued: ${s.queue.join(', ')}`:'idle');
@@ -223,5 +254,5 @@ o.innerHTML=`<div class="k">${name} · ${r.failing.length} failing</div><div sty
 +(r.why?`<div class="k">why</div><div style="font-size:12px;color:var(--dim)">${r.why.diverges_at?`paths part at ${r.why.diverges_at.file}:${r.why.diverges_at.line}${r.why.detail?' — '+r.why.detail:''}`:(r.why.note||'')}</div>`:'')
 +((r.notes||[]).length?`<div class="k">notes</div><div class="note">${r.notes.join('<br>')}</div>`:'')+`<div id="src"></div>`;
 o.querySelectorAll('.f').forEach(el=>el.onclick=async()=>{const f=r.where[+el.dataset.i];const t=tileOf(f.file);if(t)moveTo(t);const s=await (await fetch(`/api/source?project=${encodeURIComponent(name)}&file=${encodeURIComponent(f.file)}&line=${f.line}`)).json();if(s.lines)$('#src').innerHTML=`<div class="k">${f.file}</div><pre class="code">`+s.lines.map((l,i)=>{const n=s.from+i;const txt=(String(n).padStart(4)+'| '+l).replace(/</g,'&lt;');return n===f.line?`<b>${txt}</b>`:txt}).join('\n')+`</pre>`})}
-$('#all').onclick=()=>fetch('/api/scan?all=1',{method:'POST'});loadProjects();setInterval(tick,700);
+$('#all').onclick=()=>fetch('/api/scan?all=1',{method:'POST',headers:{'X-Buggy':'scan'}});loadProjects();setInterval(tick,700);
 </script></body></html>"""

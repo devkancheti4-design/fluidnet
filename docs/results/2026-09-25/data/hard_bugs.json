@@ -1,0 +1,83 @@
+{
+ "f58ca3e814": {
+  "ok": true,
+  "file": "src/click/_utils.py",
+  "subject": "Fix `copy`, `deepcopy` and `pickle` of `Sentinel` members",
+  "bug": "1 failed, 1889 passed, 25 skipped, 31000 deselected, 1 xfailed in 4.47s",
+  "fixed": "1999 passed, 25 skipped, 31000 deselected, 1 xfailed in 4.06s",
+  "minus": 0,
+  "plus": 6
+ },
+ "0551bf5358": {
+  "ok": false,
+  "file": "src/click/formatting.py",
+  "subject": "Fix `HelpFormatter.write_usage` producing spurious characters",
+  "bug": "1 failed, 424 passed, 30000 deselected, 1 xfailed, 1 warning in 1.47s",
+  "fixed": "1 failed, 1076 passed, 30000 deselected, 1 xfailed, 3 warnings in 1.53s",
+  "minus": 0,
+  "plus": 7
+ },
+ "701b313160": {
+  "ok": true,
+  "file": "src/click/shell_completion.py",
+  "subject": "Fix completions for quoted/escaped parameters in Fish (#3013)",
+  "bug": "1 failed, 620 passed, 1 xfailed, 1 warning in 0.77s",
+  "fixed": "901 passed, 22 skipped, 1 xfailed, 1 warning in 1.32s",
+  "minus": 0,
+  "plus": 2
+ },
+ "c326df95e9": {
+  "ok": true,
+  "file": "src/click/core.py",
+  "subject": "Fix closing of callbacks on CLI exit (#2680)",
+  "bug": "1 failed, 155 passed, 1 xfailed, 1 warning in 0.41s",
+  "fixed": "607 passed, 22 skipped, 1 xfailed, 1 warning in 0.64s",
+  "minus": 1,
+  "plus": 6
+ },
+ "1a4d8c1bb1": {
+  "ok": true,
+  "file": "src/click/types.py",
+  "subject": "Fix metavar for Choice options when show_choices=False (#2365)",
+  "bug": "1 failed, 332 passed, 1 xfailed, 1 warning in 0.53s",
+  "fixed": "601 passed, 22 skipped, 1 xfailed, 1 warning in 0.65s",
+  "minus": 1,
+  "plus": 7
+ },
+ "61f8101f4e": {
+  "ok": true,
+  "file": "src/click/core.py",
+  "subject": "Fix printing of default option value to handle empty strings",
+  "bug": "1 failed, 287 passed, 1 xfailed, 1 warning in 0.51s",
+  "fixed": "590 passed, 22 skipped, 1 xfailed, 1 warning in 0.60s",
+  "minus": 0,
+  "plus": 2
+ },
+ "e003331551": {
+  "ok": false,
+  "file": "src/click/types.py",
+  "subject": "fix ParamType.to_info_dict() with no name",
+  "bug": "1 failed, 8 passed, 1 warning in 0.27s",
+  "fixed": "1 failed, 8 passed, 1 warning in 0.05s",
+  "minus": 1,
+  "plus": 6
+ },
+ "4aff02676c": {
+  "ok": false,
+  "file": "src/click/termui.py",
+  "subject": "fix backspace in prompt with readline enabled",
+  "bug": "1 failed, 5 passed, 1 warning in 0.26s",
+  "fixed": "1 failed, 5 passed, 1 warning in 0.11s",
+  "minus": 2,
+  "plus": 4
+ },
+ "11c286a37d": {
+  "ok": false,
+  "file": "src/click/_termui_impl.py",
+  "subject": "fix edit() require_save check for fast editors",
+  "bug": "1 failed, 5 passed, 1 warning in 0.44s",
+  "fixed": "1 failed, 5 passed, 1 warning in 0.08s",
+  "minus": 0,
+  "plus": 7
+ }
+}

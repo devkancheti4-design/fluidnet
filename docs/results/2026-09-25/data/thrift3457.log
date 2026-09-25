@@ -1,0 +1,17 @@
+  locate (buggy)                                 112.0s  files src/click/core.py, src/click/decorators.py, src/click/testing.py; 1 proposed repair(s)
+  certify buggy's repair                          42.1s  CERTIFIED: src/click/core.py:1877 and ↔ or
+  is buggy's repair the only fix at its line?     85.6s  AMBIGUOUS: B_sibling.py writes a different program that also passes
+  body: a test that tells the two fixes apart      0.0s  0 tokens
+  resolve with the body's test                    43.9s  RESOLVED: candidate 1 of 2: the new test passes with it alone, and it is certified on the full suite with that test included
+
+nets, by how much of the repository each recognises:
+  /private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/lb/nets/B_sibling.py 1 classes   3705 signal hits
+  /private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/lb/nets/A_corpus.py 4 classes    918 signal hits
+  /private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/lb/nets/C_real.py 3 classes     26 signal hits
+
+--- resolved: repaired
+    committed src/click/core.py and tests/test_fluidnet_pin.py
+
+total 283.9s
+winner: resolved by the core with the body's test
+PYTHONPATH=$D/src PATH=$S/cvenv/bin:$PATH nice -n 5 $S/cvenv/bin/fluidnet  $D  201.34s user 33.66s system 82% cpu 4:44.08 total

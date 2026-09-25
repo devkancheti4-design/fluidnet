@@ -29,8 +29,19 @@ teach_property(4, "one sentence a maintainer can review", my_property)
 '''
 
 
+def _parse_leads(items):
+    """--lead src/pkg/x.py:12,14 (repeatable) -> {"src/pkg/x.py": [12, 14]}"""
+    out = {}
+    for it in items or []:
+        f, _, ls = it.rpartition(":")
+        if f and ls:
+            out.setdefault(f, []).extend(int(x) for x in ls.split(",") if x.strip().isdigit())
+    return out or None
+
+
 def cmd_watch(a) -> int:
     from .overseer import watch, watch_with_buggy, buggy_bin, buggy_has_mutation
+    from .body import Body
     if a.no_buggy:
         r = watch(a.root, a.net, commit=a.commit, python=a.python)
         r.setdefault("stages", [])
@@ -40,7 +51,9 @@ def cmd_watch(a) -> int:
             print("note: this buggy has no mutation lane (PyPI buggy-cli 0.1.0) — install it from "
                   "https://github.com/devkancheti4-design/buggy for the lane that finds the line\n")
         r = watch_with_buggy(a.root, a.net, commit=a.commit, python=a.python, jobs=a.jobs,
-                             mutate_seconds=a.mutate_seconds, top_files=a.top_files, fallback=not a.no_fallback)
+                             mutate_seconds=a.mutate_seconds, top_files=a.top_files, fallback=not a.no_fallback,
+                             file_budget=a.file_budget, hive=not a.no_hive, lead=_parse_leads(a.lead),
+                             body=Body(a.body) if a.body else None, mode=a.mode, learned=a.learned)
     for name, secs, what in r.get("stages", []):
         print(f"  {name:44} {secs:>7.1f}s  {what}")
     if r.get("order"):
@@ -58,16 +71,65 @@ def cmd_watch(a) -> int:
         return 0
     if r.get("status") == "green":
         return 0
+    if r.get("status") == "ambiguous":
+        for o in r.get("outcomes", []):
+            if o.status == "ambiguous":
+                print("\nAMBIGUOUS — " + o.output)
+        print("nothing shipped: two fixes the suite cannot tell apart is not a repair; the tree is as you left it")
+        return 2
     print("nothing shipped; the tree is as you left it")
     return 2
+
+
+def cmd_sweep(a) -> int:
+    from .sweep import sweep, render, as_json
+    python = a.python
+    if not python:
+        from .locate import project_python
+        python = project_python(a.root)
+    r = sweep(a.root, a.net, python=python, paths=a.path, commit=a.commit,
+              trust_property=a.trust_property, confirm=a.confirm, deselect=a.deselect)
+    if a.json:
+        print(as_json(r))
+    else:
+        print(render(r))
+        if r.diff and not a.commit:
+            print("\n" + r.diff)
+    return 0 if r.status in ("CERTIFIED", "NOTHING") else 2
 
 
 def cmd_certify(a) -> int:
     from .certify import certify
     patched = Path(a.patch).read_text(encoding="utf-8")
+    if a.net:
+        # certified is not enough: the nets search the lines the fix touches for a different passing program
+        from .overseer import judge_outside_fix
+        j = judge_outside_fix(a.root, a.file, patched, a.net, python=a.python or sys.executable)
+        if a.json:
+            print(json.dumps({k: v for k, v in j.__dict__.items() if k != "certificate"} |
+                             {"certificate": j.certificate.__dict__ if j.certificate else None}, indent=1, default=str))
+        else:
+            print((j.certificate.render() + "\n") if j.certificate else "", end="")
+            print(f"{j.verdict}: {j.why}  ({j.seconds}s)")
+        return 0 if j.ok else 2
     c = certify(a.root, a.file, patched, python=a.python or sys.executable, confirm=a.confirm)
     print(json.dumps(c.__dict__, indent=1) if a.json else c.render())
     return 0 if c.ok else 2
+
+
+def cmd_resolve(a) -> int:
+    from .resolve import resolve
+    cands = [Path(c).read_text(encoding="utf-8") for c in a.candidate]
+    r = resolve(a.root, a.file, cands, a.test, python=a.python or sys.executable)
+    if a.json:
+        print(json.dumps(r.__dict__, indent=1))
+    else:
+        print(f"{r.verdict}: {r.why}")
+        print("  the new test passes with: " + ", ".join(f"{c} {'yes' if p else 'no'}" for c, p in zip(a.candidate, r.passes)))
+        print(f"  {r.suite_runs} suite runs · {r.seconds}s · rolled back byte-exact: {r.rolled_back_exact}")
+        if r.ok:
+            print(f"  apply {a.candidate[r.winner]} and keep {a.test}")
+    return 0 if r.ok else 2
 
 
 def cmd_descend(a) -> int:
@@ -278,13 +340,50 @@ def main(argv=None) -> int:
     w.add_argument("--top-files", type=int, default=3, help="how many of buggy's files the nets search")
     w.add_argument("--no-fallback", action="store_true",
                    help="when buggy's files lead nowhere, stop instead of letting fluidnet search alone")
+    w.add_argument("--lead", action="append", help="FILE:LINE[,LINE] — a lead handed to the core (a person's, or an "
+                                                   "agent's as the body): searched first with the nets, certified, proved "
+                                                   "unique; buggy runs only if it leads nowhere (repeatable)")
+    w.add_argument("--body", help="a command that answers the core's requests for data on stdin -> stdout (e.g. "
+                                  "'claude -p --output-format json'): a deciding test when two fixes pass, vocabulary "
+                                  "for a shape no net knows, and in --mode speed a pointer to the fault first")
+    w.add_argument("--mode", choices=["thrift", "speed"], default="thrift",
+                   help="thrift: the core works alone and asks the body only when it must (default); speed: the "
+                        "body points at the fault first, every time")
+    w.add_argument("--learned", help="where vocabulary the body teaches is kept as nets (default: .fluidnet/learned)")
+    w.add_argument("--no-hive", action="store_true",
+                   help="when buggy's first run leaves lines unmeasured, do NOT redeploy it as a hive sized to the target")
+    w.add_argument("--file-budget", type=int, default=600,
+                   help="seconds for each whole-file repair in buggy's files (0: unbounded); past it the net stops, "
+                        "the file untouched, and the next one looks")
     w.add_argument("--python"); w.set_defaults(fn=cmd_watch)
+
+    sw = sub.add_parser("sweep", help="do what you taught at every site, with nothing red to start from: each "
+                                      "rewrite proved by its property, run by the suite, green before and after")
+    sw.add_argument("root"); sw.add_argument("--net", action="append", required=True,
+                                             help="a dictionary file; repeat for each net")
+    sw.add_argument("--path", action="append", help="sweep only this file or folder (repeatable; default: "
+                                                    "every source file outside tests/, venvs, build)")
+    sw.add_argument("--commit", action="store_true", help="keep and commit the certified rewrites (default: dry-run)")
+    sw.add_argument("--trust-property", action="store_true",
+                    help="also write proved rewrites on lines no test runs (default: left alone, listed)")
+    sw.add_argument("--confirm", type=int, default=1, help="green re-checks before anything is written")
+    sw.add_argument("--deselect", action="append", help="a test id pytest should skip, before and after alike (a test your environment cannot run); repeatable, and printed in the report")
+    sw.add_argument("--json", action="store_true"); sw.add_argument("--python"); sw.set_defaults(fn=cmd_sweep)
 
     c = sub.add_parser("certify", help="judge a fix nobody here wrote under the repo's own suite")
     c.add_argument("root"); c.add_argument("--file", required=True, help="the file the patch replaces, relative")
     c.add_argument("--patch", required=True, help="a file holding the patched content")
     c.add_argument("--confirm", type=int, default=2); c.add_argument("--python"); c.add_argument("--json", action="store_true")
+    c.add_argument("--net", action="append", help="also check the fix is the ONLY program at its lines: these nets "
+                                                  "search them for a different one that passes (repeatable)")
     c.set_defaults(fn=cmd_certify)
+
+    rs = sub.add_parser("resolve", help="two fixes pass the suite: check that a NEW test chooses exactly one, and "
+                                        "certify that one with the test included")
+    rs.add_argument("root"); rs.add_argument("--file", required=True, help="the file the candidates replace, relative")
+    rs.add_argument("--candidate", action="append", required=True, help="a file holding one candidate's full text (repeat)")
+    rs.add_argument("--test", required=True, help="the new deciding test file, relative (e.g. tests/test_pin.py)")
+    rs.add_argument("--python"); rs.add_argument("--json", action="store_true"); rs.set_defaults(fn=cmd_resolve)
 
     d = sub.add_parser("descend", help="more than one bug in one file: walk the failing count down to zero")
     d.add_argument("file"); d.add_argument("--test", action="append", required=True, help="an assert; repeat")

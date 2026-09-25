@@ -7,7 +7,13 @@ in any of them — no weights, no prompt, no tokens. Decisions are made by gener
 measured facts; the only judge of a fix is your own test suite; the only thing that can *prove* one is a
 property you wrote. Same input, same answer, every time. Open-ended bugs stay yours, by design.
 
-**[Watch it run — 3:52, every command live](docs/media/fluidnet.mp4)** · [the full account](docs/FLUIDNET.md)
+**[Watch it run — 3:52, every command live](docs/media/fluidnet.mp4)** · [the full account](docs/FLUIDNET.md) ·
+**[Results 2026-09-25](docs/results/2026-09-25)** — ten real click bugs: fluidnet alone, an AI agent alone, and both together
+
+See it: [the core, in 3D](docs/media/fluidnet-core.html) · [the two modes](docs/media/fluidnet-modes.html) ·
+[with and without buggy](docs/media/fluidnet-buggy.html) (open in a browser; live on claude.ai:
+[core](https://claude.ai/artifact/LRkFgwd47Vm4nLWNhb3ECL) · [modes](https://claude.ai/artifact/ReNRdzejyQ22osnUubgEQW) ·
+[buggy](https://claude.ai/artifact/QDPrmyaDzP9P7Rs9hfHu2e), open once the owner shares them)
 
 ---
 
@@ -26,19 +32,72 @@ click, a strictness regression at `parser.py:437` with 92 failing tests: the bli
 other files and refused at its 300 s budget without opening `parser.py`. [buggy](https://github.com/devkancheti4-design/buggy)'s
 mutation lane put that line first in 279 s and proposed `<=` → `<`. So `watch` asks buggy first:
 
-1. **buggy locates** — its files, best evidence first: the mutation experiment and the introducing commit,
-   then coverage, then where missing code belongs.
+1. **buggy locates** — its files, best evidence first: a proposed repair's file (the mutant that flipped every
+   failing test and broke none), then the mutation experiment and the introducing commit, then coverage, then
+   where missing code belongs.
 2. **fluidnet certifies buggy's proposed repair** — a patch fluidnet did not write, judged by the same
-   gates as its own: red before, green on the full suite, stable, nothing else broken, file restored.
-3. **each net repairs with the file named** — `fluidfix repair --file` on buggy's files only.
-4. only without buggy, or when buggy names no file, the nets search blind as before. A suite buggy says it
-   cannot judge (`harness`) gets nothing attempted.
+   gates as its own: red before, green on the full suite, stable, nothing else broken, file restored — and
+   **the only fix at its line**: the nets search that line, and a *different* program that also passes means the
+   suite cannot choose (AMBIGUOUS, nothing ships). Measured on click: `-=` → `pass` passed all 2,240 tests and
+   was certified; it drops a paragraph's first-line indent that click's `+=` keeps.
+3. **the nets repair on buggy's lines**, cheapest net first per file (fewest of its own signal hits there) — a
+   broad net that went first on a whole file ran 49 minutes where the right net needed 45 s.
+4. **when buggy's first run left the target unmeasured**, buggy is redeployed as a hive sized from its own
+   measured rate (cores and free memory permitting): one worker measured 47 of 1,177 lines; eight measured all.
+5. then each of buggy's whole files, each net bounded (`--file-budget`, 600 s), then fluidnet alone, bounded
+   the same way. A suite buggy says it cannot judge (`harness`) never stops fluidnet judging for itself.
 
 ```bash
 pip install "buggy-cli @ git+https://github.com/devkancheti4-design/buggy@main"   # the mutation lane is not in PyPI 0.1.0
 fluidnet watch . --net rules.py            # dry-run: the certified repair is reported, the tree untouched
 fluidnet watch . --net rules.py --commit   # -j N for more mutation workers (default 1, light on memory)
 ```
+
+### Taught work with nothing red — `fluidnet sweep`
+Not every repeat is a bug. A migration, a house convention, a deprecation: work you teach once and want done
+at every site, where no test fails first. `sweep` runs every taught rewrite across the source and writes only
+what three judges pass — the class's **property proves** the rewrite, the **suite runs** the line, and the
+full suite is **green before and after**, stable on re-check. A rewrite that turns the suite red is found by
+halving and refused; a line no test runs is listed, not written (`--trust-property` writes it on the proof
+alone); a class that proposes two rewrites for one line is choosing, and is refused.
+
+Measured on click's own history: the maintainers' "use super() consistently" commit (08a0d69, 2020) turned
+`Base.method(self, …)` into `super().method(…)`. Taught from **one** of its lines and swept over the code as it
+was before that commit: **23 sites certified in 4.7 s, 4 suite runs, no model** — 22 byte-identical to what the
+maintainers wrote, 1 where they deleted a redundant method instead, 2 of theirs held back because no test runs
+them, 0 wrong edits.
+
+```bash
+fluidnet sweep . --net migration.py            # dry-run: every certified rewrite as a diff, the tree untouched
+fluidnet sweep . --net migration.py --commit   # keep them, one commit
+```
+
+### An AI agent as the suit — `--body`, two modes
+fluidnet stays the core: it decides and proves every fix. An AI agent can be its **suit** — it never writes a fix
+and never decides; it hands the core facts, as text, and the core does every file operation:
+
+- **a pointer** — `LEAD: src/pkg/x.py:12` — which the core searches first (`--lead` takes one from a person too);
+- **a deciding test**, when two fixes pass the whole suite — the core checks it passes exactly one of them
+  (`fluidnet resolve`), then certifies that one with the test included and keeps the test;
+- **vocabulary**, when no net knows the shape — a rule and its property, saved as a learned net, so every later
+  bug of that shape is the core's alone.
+
+| on ten real click bugs | **speed** (`--mode speed`) | **token-saving** (`--mode thrift`) | agent alone |
+|---|---|---|---|
+| correct | 9/10 byte-exact, 1 refused | 10/10 (9 byte-exact) | 10/10 |
+| wrong fixes | 0 | 0 | 0 — but unchecked |
+| median time | 178 s | 367 s | 51 s |
+| agent tokens | 574,175 | 97,753 | 506,431 |
+
+```bash
+fluidnet watch . --net rules.py --body "claude -p --output-format json" --mode speed    # the agent points first
+fluidnet watch . --net rules.py --body "claude -p --output-format json"                 # thrift: asked only when stuck
+fluidnet watch . --net rules.py --lead src/pkg/x.py:12                                  # a lead from anyone, no body
+```
+
+The body is any command that reads the request on stdin and prints the reply. Token counts above are what an agent
+runtime reported (~47,000 per call, mostly its own overhead); a request itself carries a median ~450 tokens of
+facts. [All numbers, data and harness →](docs/results/2026-09-25)
 
 ### The locator — `fluidnet locate`
 When the suite goes red and you don't know where. Three questions, answered with evidence: **where**
@@ -65,6 +124,11 @@ A fix you didn't write — a colleague's, a model's — judged under your own su
 after on the full suite, stable on re-run, nothing else broken, file restored byte-exact. As a gate it
 speaks ALLOW / WARN / BLOCK, a class property first and the suite second, so it refuses what a suite
 alone would accept. Also served as MCP tools for any agent runtime.
+
+`fluidnet certify … --net rules.py` adds the second law: the nets search the lines the fix touches, and a
+different program that also passes makes it AMBIGUOUS. When two fixes pass, `fluidnet resolve . --file F
+--candidate a.py --candidate b.py --test tests/test_pin.py` checks that a *new* test passes exactly one of them,
+then certifies that one with the test included.
 
 ### More than one bug at a time — `fluidnet descend`
 A pass/fail suite throws a correct half-fix away. Descent counts how many tests fail, keeps a step when
@@ -96,6 +160,9 @@ fluidfix guard . --dry-run                         # what the shipped shapes wou
 fluidnet teach > rules.py                          # the second time you fix a shape by hand, teach it
 fluidfix guard . --dictionary rules.py --commit    # from now on it owns that shape, with proof
 fluidnet certify . --file pkg/x.py --patch fix.py  # someone hands you a fix: certify before you trust it
+fluidnet certify . --file pkg/x.py --patch fix.py --net rules.py   # ... and check it is the only fix at its lines
+fluidnet watch . --net rules.py --body "claude -p --output-format json"   # an agent as the suit, asked only when stuck
+fluidnet sweep . --net migration.py              # a taught migration or convention, every site, certified
 fluidnet descend pkg/x.py --test 'assert …'        # two bugs in one file
 fluidnet buggy .   ·   fluidnet scan ~/code        # buggy, the pixel bug; a folder of projects
 ```
@@ -135,7 +202,7 @@ Every one of these happened while building it.
 ## Test
 
 ```bash
-pytest -q        # 42 tests, each a real pytest project in a temp dir, nothing mocked
+pytest -q        # 95 tests, each a real pytest project in a temp dir, nothing mocked
 ```
 
 ## What is measured
@@ -147,6 +214,11 @@ pytest -q        # 42 tests, each a real pytest project in a temp dir, nothing m
 | the gate on model-written patches | 84 judged, no per-case tuning: correct 14/14 allowed, wrong/flaky/collateral 29/29 blocked, the overfit hole named |
 | the locator on real click fixes | guilty file first 9 of 26 (previous file ranking: 3); at line level only 8 of 26 reachable — the other 18 add code, which is what the second verdict is for |
 | multi-fault descent | 3 faults, 3 classes never taught together, 11 suite runs |
+| a real migration, taught from one line | click's super() commit: 23 sites certified, 22 byte-identical to the maintainers, 0 wrong, 4 suite runs |
+| ten real click bugs, fluidnet with buggy | released build 4/10 byte-exact; final build 8/10 byte-exact, 2 refused as ambiguous, 0 wrong, median 367 s, no model |
+| the same ten, fluidnet + an agent as the suit | speed 9/10 byte-exact, median 178 s · token-saving 10/10 correct with 2 agent calls · 0 wrong in both |
+| a new shape taught once | by hand: 11/11 held-out click bugs byte-exact · by an agent from one example: 4/4 in its reach, 0 wrong, reach 3 of 11 |
+| a real multi-line bug, rule by an agent | click f58ca3e814: the core shipped a fix in 30 s that passes the maintainer's regression tests (not byte-identical) |
 | real history, knowledge only | a generic vocabulary reaches ~2% of 565 real fixes, 75% of the single-token mechanical ones |
 
 Full numbers, both levels, in [docs/LOCATE.md](docs/LOCATE.md) and [examples/real](examples/real). Read them straight.

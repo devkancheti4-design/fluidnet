@@ -1,0 +1,56 @@
+{
+ "id": 2014,
+ "secs": 1046.7,
+ "mutation_cost": {
+  "measured": 1177,
+  "mutants": 1835,
+  "runs": 1836,
+  "seconds": 1019.4,
+  "cut": 0,
+  "workers": 8
+ },
+ "fault_in_mutation_lane": [
+  8,
+  7
+ ],
+ "fault_in_where_lane": null,
+ "mutation_top": [
+  [
+   "formatting.py",
+   262,
+   8
+  ],
+  [
+   "decorators.py",
+   614,
+   8
+  ],
+  [
+   "decorators.py",
+   621,
+   8
+  ],
+  [
+   "decorators.py",
+   624,
+   8
+  ],
+  [
+   "core.py",
+   190,
+   8
+  ],
+  [
+   "core.py",
+   1326,
+   7
+  ]
+ ],
+ "repairs": [
+  [
+   "_textwrap.py",
+   168,
+   "statement \u2192 pass"
+  ]
+ ]
+}

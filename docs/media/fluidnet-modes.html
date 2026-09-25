@@ -1,0 +1,286 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fluidnet modes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --ground:#070C0C; --panel:#0C1515; --panel2:#111D1C; --rule:#1D2B2A;
+  --ink:#E6EFEC; --ink2:#A2B5B0; --ink3:#6E827D;
+  --core:#5FD3C8; --core-soft:rgba(95,211,200,.14); --suit:#C3C6D6; --suit-soft:rgba(195,198,214,.13);
+  --speed:#F2A65A; --speed-soft:rgba(242,166,90,.14); --thrift:#AC9DF2; --thrift-soft:rgba(172,157,242,.15);
+  --ok:#7CD48B; --warn:#F2A65A; --bad:#EA876C;
+  --display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{background:var(--ground)}
+body{color:var(--ink);font:16px/1.6 var(--sans);margin:0;padding-inline:20px;padding-block:0 80px}
+.wrap{max-width:1120px;margin:0 auto}
+:focus-visible{outline:2px solid var(--core);outline-offset:3px;border-radius:6px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin:0 0 14px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-weight:800;font-size:clamp(38px,6.2vw,76px);line-height:.98;letter-spacing:-.035em;max-width:14ch}
+h1 .s{color:var(--speed)} h1 .t{color:var(--thrift)}
+h2{font-weight:600;font-size:clamp(26px,3.3vw,40px);line-height:1.08;letter-spacing:-.02em;max-width:24ch}
+h3{font-weight:600;font-size:19px;letter-spacing:-.01em}
+p{max-width:64ch}
+.lede{font-size:18px;color:var(--ink2);margin:18px 0 0;max-width:60ch}
+section{padding-block:76px 8px}
+header.hero{padding-block:44px 8px}
+
+/* the replay */
+.replay{margin-top:30px;border:1px solid var(--rule);border-radius:20px;background:
+  radial-gradient(90% 120% at 0% 0%,rgba(95,211,200,.07),transparent 60%),var(--panel);padding:22px 22px 18px}
+.rhead{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+.bugtag{font:500 13px var(--mono);color:var(--ink2)} .bugtag b{color:var(--ink);font-weight:500}
+.switch{display:inline-flex;border:1px solid var(--rule);border-radius:999px;padding:4px;background:var(--ground)}
+.switch button{font:600 14px var(--sans);border:0;background:transparent;color:var(--ink2);padding:8px 16px;border-radius:999px;cursor:pointer}
+.switch button[aria-pressed="true"][data-m="speed"]{background:var(--speed);color:#1D1206}
+.switch button[aria-pressed="true"][data-m="thrift"]{background:var(--thrift);color:#150F2E}
+.lanes{margin-top:22px;display:grid;grid-template-columns:110px 1fr;gap:12px 14px;align-items:center}
+.who{font:600 13px var(--sans);color:var(--ink2)} .who small{display:block;font:400 11.5px var(--mono);color:var(--ink3)}
+.who.c{color:var(--core)} .who.b{color:var(--suit)}
+.lane{position:relative;height:44px;border-radius:10px;background:var(--panel2);overflow:hidden}
+.seg{position:absolute;top:6px;bottom:6px;border-radius:7px;display:flex;align-items:center;padding:0 8px;white-space:nowrap;
+  overflow:hidden;font:500 11.5px var(--mono);opacity:.28;transition:opacity .3s}
+.seg.on{opacity:1}
+.seg.core{background:var(--core-soft);color:var(--core);box-shadow:inset 0 0 0 1px rgba(95,211,200,.35)}
+.seg.core.bad{background:rgba(234,135,108,.13);color:var(--bad);box-shadow:inset 0 0 0 1px rgba(234,135,108,.4)}
+.seg.core.amb{background:rgba(242,166,90,.12);color:var(--warn);box-shadow:inset 0 0 0 1px rgba(242,166,90,.4)}
+.seg.core.win{background:rgba(124,212,139,.14);color:var(--ok);box-shadow:inset 0 0 0 1px rgba(124,212,139,.45)}
+.seg.body{background:var(--suit-soft);color:var(--suit);box-shadow:inset 0 0 0 1px rgba(195,198,214,.35)}
+.head{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);box-shadow:0 0 12px var(--ink);pointer-events:none}
+.axis{grid-column:2;position:relative;height:20px;border-top:1px solid var(--rule)}
+.axis span{position:absolute;top:3px;transform:translateX(-50%);font:11px var(--mono);color:var(--ink3)}
+.rfoot{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch;justify-content:space-between;margin-top:14px}
+.narr{flex:1 1 360px;min-height:64px;border-radius:12px;background:var(--ground);border:1px solid var(--rule);padding:10px 14px}
+.narr .k{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.narr p{margin:3px 0 0;font-size:15px}
+.meters{display:flex;gap:10px;flex-wrap:wrap}
+.m{min-width:120px;border-radius:12px;background:var(--ground);border:1px solid var(--rule);padding:8px 12px}
+.m .k{font:500 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.m .v{font:700 24px var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.replay-btn{font:600 13px var(--sans);color:var(--ink);background:transparent;border:1px solid var(--rule);border-radius:999px;padding:7px 14px;cursor:pointer}
+@media (max-width:640px){.lanes{grid-template-columns:1fr}.axis{grid-column:1}}
+
+/* the two modes */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px}
+@media (max-width:820px){.modes{grid-template-columns:1fr}}
+.mode{border-radius:18px;padding:24px;background:var(--panel);border:1px solid var(--rule);display:flex;flex-direction:column;gap:16px}
+.mode.speed{box-shadow:inset 0 3px 0 var(--speed)} .mode.thrift{box-shadow:inset 0 3px 0 var(--thrift)}
+.mode h3{font-size:22px} .mode.speed h3{color:var(--speed)} .mode.thrift h3{color:var(--thrift)}
+.mode .how{margin:0;color:var(--ink2);font-size:15px}
+.flag{font:500 12px var(--mono);color:var(--ink3)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.st{border-radius:12px;background:var(--panel2);padding:12px}
+.st .k{font-size:12.5px;color:var(--ink3)} .st .v{font:700 26px var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.st .d{font:12px var(--mono);color:var(--ink3)}
+.mode code{font:13px var(--mono);color:var(--ink);background:var(--ground);border:1px solid var(--rule);border-radius:8px;padding:8px 10px;display:block;overflow-x:auto;white-space:nowrap}
+
+/* the ledger */
+.ledgerwrap{margin-top:26px;overflow-x:auto;border:1px solid var(--rule);border-radius:16px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th{font:500 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:12px 14px;border-bottom:1px solid var(--rule)}
+th.sp{color:var(--speed)} th.th{color:var(--thrift)}
+td{padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td .at{font:500 13px var(--mono)} td .op{font:12px var(--mono);color:var(--ink3)}
+.cell{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center}
+.bar{height:8px;border-radius:4px;background:var(--panel2);position:relative;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.bar.over::after{content:"";position:absolute;right:0;top:0;bottom:0;width:10px;background:repeating-linear-gradient(90deg,var(--panel) 0 2px,transparent 2px 4px)}
+.num{font:500 12.5px var(--mono);color:var(--ink2);white-space:nowrap}
+.res{grid-column:1 / -1;font:12px var(--mono)}
+.res.ok{color:var(--ok)} .res.no{color:var(--warn)}
+.tok{color:var(--suit)}
+
+/* guide + notes */
+.guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:26px}
+@media (max-width:820px){.guide{grid-template-columns:1fr}}
+.g{border-radius:14px;padding:18px;background:var(--panel);border:1px solid var(--rule)}
+.g b{font-family:var(--display);font-weight:600;font-size:17px;display:block;margin-bottom:6px}
+.g p{margin:0;font-size:14.5px;color:var(--ink2)}
+.notes{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.note{border:1px dashed var(--rule);border-radius:14px;padding:14px 16px}
+.note b{font-weight:600;display:block;margin-bottom:3px}
+.note p{margin:0;font-size:14px;color:var(--ink2)}
+footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink3)}
+@media (prefers-reduced-motion: reduce){.seg{transition:none}}
+</style>
+
+<main class="wrap">
+  <header class="hero">
+    <p class="eyebrow">fluidnet · one core · two ways to use an AI agent</p>
+    <h1><span class="s">Fast</span> when time matters. <span class="t">Frugal</span> when tokens do.</h1>
+    <p class="lede">In both modes fluidnet is the core — it decides every fix and proves it is the only one — and the AI agent is only a suit that hands in facts. <b style="color:var(--speed)">Speed</b> lets the agent point at every bug first. <b style="color:var(--thrift)">Token-saving</b> leaves the core to work alone and asks the agent only when it is stuck.</p>
+
+    <div class="replay" aria-labelledby="h-replay">
+      <div class="rhead">
+        <div class="bugtag" id="h-replay">Replay of a real run · <b>click · core.py:1877</b> · two different fixes both pass click's 2,240 tests</div>
+        <div class="switch" role="group" aria-label="Mode">
+          <button type="button" data-m="speed" aria-pressed="true">Speed</button>
+          <button type="button" data-m="thrift" aria-pressed="false">Token-saving</button>
+        </div>
+      </div>
+      <div class="lanes">
+        <div class="who c">fluidnet<small>the core</small></div>
+        <div class="lane" id="laneCore"></div>
+        <div class="who b">AI agent<small>the suit</small></div>
+        <div class="lane" id="laneBody"></div>
+        <div class="axis" id="axis"></div>
+      </div>
+      <div class="rfoot">
+        <div class="narr" aria-live="polite"><div class="k" id="nk">speed</div><p id="np">The agent reads the failure and points at a line.</p></div>
+        <div class="meters">
+          <div class="m"><div class="k">elapsed</div><div class="v mono" id="mt">0 s</div></div>
+          <div class="m"><div class="k">agent tokens</div><div class="v mono" id="mk" style="color:var(--suit)">0</div></div>
+          <button type="button" class="replay-btn" id="again">Replay</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section aria-labelledby="h-modes">
+    <p class="eyebrow">The two modes · measured on ten real click bugs</p>
+    <h2 id="h-modes">Same core, same proofs. Different use of the suit.</h2>
+    <div class="modes">
+      <article class="mode speed">
+        <div><h3>Speed</h3><p class="how">The agent points at every bug; fluidnet searches there, certifies, and proves the fix is the only one. buggy is the fallback and never had to run.</p></div>
+        <div class="stats">
+          <div class="st"><div class="k">fixed, byte-exact</div><div class="v">9 / 10</div><div class="d">1 refused · 0 wrong</div></div>
+          <div class="st"><div class="k">median time</div><div class="v">178 s</div><div class="d">core alone 367 s</div></div>
+          <div class="st"><div class="k">agent calls</div><div class="v">12</div><div class="d">10 pointers · 2 facts</div></div>
+          <div class="st"><div class="k">agent tokens</div><div class="v">574k</div><div class="d">~47k per pointer</div></div>
+        </div>
+        <code>fluidnet watch . --net rules.py --body "claude -p --output-format json" --mode speed</code>
+        <p class="flag">Most of each pointer's tokens were the agent runtime's own overhead, not the work.</p>
+      </article>
+      <article class="mode thrift">
+        <div><h3>Token-saving</h3><p class="how">fluidnet locates with buggy and fixes alone. Only when two fixes pass does it ask the agent for one fact — a test — and it verifies that test separates them before it chooses.</p></div>
+        <div class="stats">
+          <div class="st"><div class="k">correct</div><div class="v">10 / 10</div><div class="d">9 byte-exact · 0 wrong</div></div>
+          <div class="st"><div class="k">median time</div><div class="v">367 s</div><div class="d">one wrong-file lead: 37 min</div></div>
+          <div class="st"><div class="k">agent calls</div><div class="v">2</div><div class="d">8 bugs asked nothing</div></div>
+          <div class="st"><div class="k">agent tokens</div><div class="v">97.8k</div><div class="d">a lean request: ~450</div></div>
+        </div>
+        <code>fluidnet watch . --net rules.py --body "claude -p --output-format json" --mode thrift</code>
+        <p class="flag">On the fly, verified end to end: fluidnet asked, checked the test, committed the fix and the test — 284 s.</p>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-ledger">
+    <p class="eyebrow">Every bug, both modes</p>
+    <h2 id="h-ledger">Ten real bugs, side by side.</h2>
+    <div class="ledgerwrap"><table>
+      <thead><tr><th>bug</th><th class="sp">speed · time and tokens</th><th class="th">token-saving · time and tokens</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <p style="font-size:13.5px;color:var(--ink3);margin-top:12px">Bars share one scale up to 900 s; a hatched end means longer. Token-saving figures are the final clean pass plus the two asks; speed figures are the hybrid run.</p>
+  </section>
+
+  <section aria-labelledby="h-guide">
+    <p class="eyebrow">Which one, when</p>
+    <h2 id="h-guide">Pick by what is scarce.</h2>
+    <div class="guide">
+      <div class="g"><b style="color:var(--speed)">Time is scarce</b><p>A red build blocking a release: run speed. The agent's reading gets the core to the line in seconds; the core still proves every fix.</p></div>
+      <div class="g"><b style="color:var(--thrift)">Tokens are scarce</b><p>Overnight, CI, many repositories: run token-saving. Most bugs cost nothing; the agent is paid only for the facts the core cannot measure.</p></div>
+      <div class="g"><b style="color:var(--core)">Neither changes the proof</b><p>Both modes ship only a fix that is certified on the full suite and the only passing program at its lines. Both refuse rather than guess.</p></div>
+    </div>
+    <div class="notes">
+      <div class="note"><b>Lean agent calls, not yet measured</b><p>A request carries only the facts — a median ~450 tokens. Real per-call usage awaits the Claude Code CLI on this machine, which reports "Credit balance is too low".</p></div>
+      <div class="note"><b>One refusal in speed</b><p><span class="mono">.get("LESS", "")</span> and a two-line None guard behave identically; the agent said so, but the core has no lane yet for accepting equivalence as data.</p></div>
+      <div class="note"><b>Token-saving footnote</b><p>Its bug 6 result predates the stricter rule that now checks every fix across all nets; under that rule the same equivalent pair would stop it too.</p></div>
+    </div>
+  </section>
+
+  <footer>Measured 2026-09-25 on pallets/click 06b2a67 · fluidnet a560d72 with uncommitted changes (the hybrid, the body, resolve) · fluidfix e09eb24 with <span class="mono">repair --budget</span> · buggy a0aa44a. Every number here comes from a logged run.</footer>
+</main>
+
+<script>
+(function(){
+var RUNS = {
+  speed: {total: 262, T: [
+    ["body", 0, 19.6, "points: core.py:1877", 45190, "The agent reads the failure and points at core.py:1877. It proposes nothing."],
+    ["core", 19.6, 31.1, "C_real: no fix", 0, "The core searches the lead with its cheapest net first: nothing."],
+    ["core bad", 31.1, 110.3, "B_sibling: context_settings", 0, "A second net writes self.context_settings — it passes all 2,240 tests. It is wrong."],
+    ["core", 110.3, 152.4, "certified", 0, "Certified: red before, green after, stable. Certification alone would have shipped it."],
+    ["core amb", 152.4, 195.7, "only fix? AMBIGUOUS", 0, "The uniqueness law: another net writes “and”, which also passes. Two programs — the core refuses to guess."],
+    ["body", 195.7, 225.7, "one test", 46652, "The core asks the agent for one fact: a test that tells the two apart."],
+    ["core win", 225.7, 261.5, "resolve → “and”", 0, "The core runs the test against both: it passes only “and”. Certified with the test. click's own code."]]},
+  thrift: {total: 284, T: [
+    ["core", 0, 112.0, "buggy locates · proposes “and”", 0, "The core locates with buggy — no agent — and buggy proposes a fix at core.py:1877."],
+    ["core", 112.0, 154.1, "certified", 0, "Certified on the full suite."],
+    ["core amb", 154.1, 239.7, "only fix? AMBIGUOUS", 0, "A net writes self.context_settings at the same line; it passes too. The core stops."],
+    ["body", 239.7, 239.7, "", 450, "On the fly, the core asks the agent for one test — a lean request of about 450 tokens of facts (estimated; this run replayed an agent's real test)."],
+    ["core win", 239.7, 283.6, "resolve → “and” · commit", 0, "The test passes only “and”. The core commits the fix and the new test that now guards it."]]}
+};
+var MAX = 300, mode = "speed", t0 = null, raf = 0;
+var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var laneC = document.getElementById("laneCore"), laneB = document.getElementById("laneBody");
+var ax = document.getElementById("axis");
+[0, 60, 120, 180, 240, 300].forEach(function(s){ var e = document.createElement("span"); e.style.left = (100 * s / MAX) + "%"; e.textContent = s + " s"; ax.appendChild(e); });
+var headC = document.createElement("div"), headB = document.createElement("div"); headC.className = headB.className = "head";
+function draw() {
+  laneC.innerHTML = ""; laneB.innerHTML = "";
+  RUNS[mode].T.forEach(function(s, i){
+    var e = document.createElement("div"); var cls = s[0].split(" ");
+    e.className = "seg " + (cls[0] === "body" ? "body" : "core") + (cls[1] ? " " + cls[1] : "");
+    e.style.left = (100 * s[1] / MAX) + "%"; e.style.width = Math.max(0.6, 100 * (s[2] - s[1]) / MAX) + "%";
+    e.textContent = s[3]; e.title = s[5]; e.dataset.i = i;
+    (cls[0] === "body" ? laneB : laneC).appendChild(e);
+  });
+  laneC.appendChild(headC); laneB.appendChild(headB);
+  document.getElementById("nk").textContent = mode === "speed" ? "speed" : "token-saving";
+}
+function frame(ts) {
+  if (t0 === null) t0 = ts;
+  var R = RUNS[mode], sec = reduce ? R.total : Math.min(R.total, (ts - t0) / 1000 * 38);
+  headC.style.left = headB.style.left = (100 * sec / MAX) + "%";
+  var tok = 0, cur = R.T[0];
+  R.T.forEach(function(s, i){ var on = sec >= s[1]; if (on) { cur = s; if (s[4] && sec >= s[2] - 0.001) tok += s[4]; }
+    var el = document.querySelector('.seg[data-i="' + i + '"]'); if (el) el.classList.toggle("on", on); });
+  document.getElementById("np").textContent = cur[5];
+  document.getElementById("mt").textContent = Math.round(sec) + " s";
+  document.getElementById("mk").textContent = mode === "thrift" && tok ? "~" + tok.toLocaleString() : tok.toLocaleString();
+  if (sec < R.total) raf = requestAnimationFrame(frame);
+}
+function play(m) {
+  mode = m || mode; cancelAnimationFrame(raf); t0 = null; draw();
+  document.querySelectorAll(".switch button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.m === mode)); });
+  raf = requestAnimationFrame(frame);
+}
+document.querySelectorAll(".switch button").forEach(function(b){ b.addEventListener("click", function(){ play(b.dataset.m); }); });
+document.getElementById("again").addEventListener("click", function(){ play(); });
+play("speed");
+
+// ledger
+var ROWS = [
+ {at:"parser.py:437", op:"cmp", s:[185,50390,"exact"], t:[407,0,"exact"]},
+ {at:"termui.py:295", op:"bool", s:[178,46822,"exact"], t:[834,0,"exact"]},
+ {at:"_termui_impl.py:730", op:"additive", s:[175,45063,"exact"], t:[367,0,"exact"]},
+ {at:"core.py:2853", op:"sibling", s:[167,45770,"exact"], t:[335,0,"exact"]},
+ {at:"_textwrap.py:168", op:"augassign", s:[162,46339,"exact"], t:[2208,51101,"exact · asked for one test"]},
+ {at:"_termui_impl.py:579", op:"getdefault", s:[157,93435,"refused · two equivalent fixes"], t:[366,0,"exact"]},
+ {at:"core.py:1877", op:"andor", s:[262,91842,"exact · asked for one test"], t:[290,46652,"same behaviour · asked for one test"]},
+ {at:"core.py:2023", op:"minmax", s:[300,60452,"exact"], t:[373,0,"exact"]},
+ {at:"utils.py:84", op:"literal", s:[190,46696,"exact"], t:[242,0,"exact"]},
+ {at:"core.py:3396", op:"bareguard", s:[131,47366,"exact"], t:[336,0,"exact"]}];
+var SC = 900, body = document.getElementById("rows");
+function cell(v, color) {
+  var w = Math.min(100, 100 * v[0] / SC), over = v[0] > SC, ok = v[2].indexOf("refused") < 0;
+  return '<div class="cell"><div class="bar' + (over ? ' over' : '') + '"><i style="width:' + w + '%;background:' + color + '"></i></div>' +
+    '<span class="num">' + v[0].toLocaleString() + ' s · <span class="tok">' + (v[1] ? v[1].toLocaleString() + ' tok' : '0 tok') + '</span></span>' +
+    '<span class="res ' + (ok ? 'ok' : 'no') + '">' + v[2] + '</span></div>';
+}
+ROWS.forEach(function(r){ var tr = document.createElement("tr");
+  tr.innerHTML = '<td><div class="at">' + r.at + '</div><div class="op">' + r.op + '</div></td><td>' + cell(r.s, "var(--speed)") + '</td><td>' + cell(r.t, "var(--thrift)") + '</td>';
+  body.appendChild(tr); });
+})();
+</script>

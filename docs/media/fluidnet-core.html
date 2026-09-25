@@ -1,0 +1,391 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fluidnet core</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --ground:#060D0C; --panel:#0B1614; --panel2:#0F1D1B; --rule:#1C2D2A;
+  --ink:#E4EFEC; --ink2:#9FB4AF; --ink3:#6B807B;
+  --core:#5FD3C8; --core-hi:#D6FFF9; --buggy:#E2A54A; --suit:#B3B8CC;
+  --ok:#7CD48B; --warn:#E2A54A; --bad:#E8866B;
+  --display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{background:var(--ground)}
+body{color:var(--ink);font:16px/1.6 var(--sans);padding-inline:20px;padding-block:0 72px;margin:0}
+.wrap{max-width:1120px;margin:0 auto}
+a{color:var(--core)}
+:focus-visible{outline:2px solid var(--core);outline-offset:3px;border-radius:6px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin:0 0 14px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-weight:800;font-size:clamp(38px,6.4vw,78px);line-height:.98;letter-spacing:-.035em;max-width:12ch}
+h1 em{font-style:normal;color:var(--core)}
+h2{font-weight:600;font-size:clamp(26px,3.4vw,40px);line-height:1.08;letter-spacing:-.02em;max-width:24ch}
+h3{font-weight:600;font-size:19px;letter-spacing:-.01em}
+p{max-width:64ch}
+.lede{font-size:18px;color:var(--ink2);margin:18px 0 0;max-width:56ch}
+
+/* hero: the core */
+.hero{padding-block:40px 8px}
+.stage{position:relative;margin-top:28px;border:1px solid var(--rule);border-radius:20px;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 38%,#0E2421 0%,#081312 55%,#050B0A 100%);height:clamp(440px,68vh,660px)}
+#scene{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:pan-y}
+#scene:active{cursor:grabbing}
+.tag{position:absolute;left:0;top:0;pointer-events:none;white-space:nowrap;font:500 11.5px var(--mono);letter-spacing:.04em;
+  padding:3px 8px;border-radius:999px;background:rgba(6,13,12,.72);border:1px solid var(--rule);color:var(--ink2);
+  transform:translate(-50%,-50%);transition:opacity .3s}
+.tag b{font-weight:500;color:var(--ink)}
+.tag.core{border-color:rgba(95,211,200,.45);color:var(--core-hi)}
+.tag.buggy{border-color:rgba(226,165,74,.5);color:#F3CF95}
+.tag.suit{border-color:rgba(179,184,204,.4);color:var(--suit)}
+.tag.dim{opacity:.35}
+.hud{position:absolute;left:18px;right:18px;bottom:16px;display:flex;gap:14px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;pointer-events:none}
+.caption{pointer-events:auto;max-width:560px;background:rgba(6,13,12,.82);backdrop-filter:blur(6px);border:1px solid var(--rule);
+  border-radius:14px;padding:12px 16px;min-height:70px}
+.caption .step{font:500 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.caption p{margin:4px 0 0;font-size:15px;color:var(--ink)}
+.meter{pointer-events:auto;display:flex;gap:10px}
+.m{background:rgba(6,13,12,.82);border:1px solid var(--rule);border-radius:12px;padding:8px 12px;min-width:118px}
+.m .k{font:500 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.m .v{font:700 22px var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.m .v.core{color:var(--core-hi)} .m .v.suit{color:var(--suit)}
+.modes{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.modes button{font:500 14px var(--sans);color:var(--ink2);background:var(--panel);border:1px solid var(--rule);border-radius:999px;
+  padding:9px 16px;cursor:pointer;display:flex;gap:8px;align-items:center}
+.modes button .n{font:500 12px var(--mono);color:var(--ink3)}
+.modes button[aria-pressed="true"]{color:var(--ground);background:var(--core-hi);border-color:var(--core-hi)}
+.modes button[aria-pressed="true"] .n{color:#2A4A46}
+.hint{font:12px var(--mono);color:var(--ink3);margin:10px 2px 0}
+
+/* sections */
+section{padding-block:72px 8px}
+.decisions{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:26px}
+@media (max-width:760px){.decisions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.d{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.d .at{font:500 12.5px var(--mono);color:var(--ink)}
+.d .op{font:12px var(--mono);color:var(--ink3)}
+.d .who{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--core);box-shadow:0 0 10px var(--core);flex:none}
+.d .port{font:500 11.5px var(--mono);color:var(--suit);border-top:1px dashed var(--rule);padding-top:8px}
+.d.asked{border-color:rgba(179,184,204,.35)}
+.d .res{font:500 12px var(--mono);color:var(--ok)}
+.split{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:26px}
+@media (max-width:860px){.split{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:16px;padding:22px}
+.bars{display:flex;flex-direction:column;gap:16px;margin-top:6px}
+.bar .lab{display:flex;justify-content:space-between;font-size:14px;color:var(--ink2);gap:10px}
+.bar .lab b{font:600 14px var(--mono);color:var(--ink)}
+.track{height:12px;border-radius:6px;background:var(--panel2);overflow:hidden;margin-top:6px}
+.fill{height:100%;border-radius:6px}
+.big{font:800 clamp(44px,6vw,68px) var(--display);letter-spacing:-.04em;line-height:1;color:var(--core-hi)}
+.big small{font:500 16px var(--sans);color:var(--ink2);letter-spacing:0;margin-left:6px}
+.contract{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px}
+@media (max-width:760px){.contract{grid-template-columns:1fr}}
+.contract ul{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.contract li{display:grid;grid-template-columns:20px 1fr;gap:10px;font-size:15px;color:var(--ink2)}
+.contract li i{font-style:normal;font:600 14px var(--mono)}
+.core-col h3{color:var(--core-hi)} .suit-col h3{color:var(--suit)}
+.core-col li i{color:var(--core)} .suit-col li i{color:var(--suit)}
+.notes{margin-top:26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.note{border:1px dashed var(--rule);border-radius:14px;padding:16px}
+.note b{font-family:var(--display);font-weight:600;font-size:16px;display:block;margin-bottom:4px}
+.note p{margin:0;font-size:14px;color:var(--ink2)}
+footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink3)}
+@media (prefers-reduced-motion: reduce){.tag{transition:none}}
+</style>
+
+<main class="wrap">
+  <header class="hero">
+    <p class="eyebrow">click · 10 real bugs · 2,240 tests as the judge</p>
+    <h1>The decisions live in the <em>core</em>.</h1>
+    <p class="lede">fluidnet is the brain: it infers, decides, fixes and proves — with no model and no tokens. buggy is the part of that brain that finds where. The AI agent is only the suit at the edge: when the core lacks a fact, the suit hands in data or vocabulary, and the core does the rest.</p>
+    <div class="stage" id="stage">
+      <canvas id="scene" aria-label="A 3D model: the fluidnet core at the centre with its laws, taught nets and judge ring; buggy as a locator lobe scanning click's files; the AI agent as a faint outer shell with two ports, data and vocabulary."></canvas>
+      <div id="tags"></div>
+      <div class="hud">
+        <div class="caption" aria-live="polite"><div class="step" id="step">known shape</div><p id="cap">A test goes red in click.</p></div>
+        <div class="meter">
+          <div class="m"><div class="k">core tokens</div><div class="v core mono" id="tc">0</div></div>
+          <div class="m"><div class="k">suit tokens</div><div class="v suit mono" id="ts">0</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modes" role="group" aria-label="Scenario">
+      <button type="button" data-mode="known" aria-pressed="true">A shape the core knows <span class="n">8 of 10</span></button>
+      <button type="button" data-mode="ambig" aria-pressed="false">Two fixes pass the suite <span class="n">2 of 10</span></button>
+      <button type="button" data-mode="novel" aria-pressed="false">A shape the core has never seen <span class="n">teach once</span></button>
+    </div>
+    <p class="hint">Drag to turn the model.</p>
+  </header>
+
+  <section aria-labelledby="h-dec">
+    <p class="eyebrow">Who decided · every bug</p>
+    <h2 id="h-dec">Ten bugs. Ten decisions. All of them the core's.</h2>
+    <p class="lede">The core located, generated, judged and shipped all ten. On two of them it could not choose alone — two different fixes passed click's full suite — so it asked the suit for one fact each: a test, an input and its expected output. The core ran that test against both fixes and chose.</p>
+    <div class="decisions" id="decisions"></div>
+  </section>
+
+  <section aria-labelledby="h-cost">
+    <p class="eyebrow">Where the tokens go</p>
+    <h2 id="h-cost">The heavy work costs nothing. The suit is only paid at the edge.</h2>
+    <div class="split">
+      <div class="card">
+        <div class="bars">
+          <div class="bar"><div class="lab"><span>an AI agent doing all ten itself</span><b>506,431 tokens</b></div>
+            <div class="track"><div class="fill" style="width:100%;background:var(--suit);opacity:.55"></div></div></div>
+          <div class="bar"><div class="lab"><span>the core, with the suit asked twice for one test</span><b>97,753 tokens</b></div>
+            <div class="track"><div class="fill" style="width:19.3%;background:var(--suit)"></div></div></div>
+          <div class="bar"><div class="lab"><span>the core's own inference, all ten bugs</span><b>0 tokens</b></div>
+            <div class="track"><div class="fill" style="width:.6%;background:var(--core);box-shadow:0 0 12px var(--core)"></div></div></div>
+        </div>
+        <p style="margin:18px 0 0;font-size:13.5px;color:var(--ink3)">Suit tokens are what the agent runtime reported, including its fixed context — a leaner suit would cost less; not measured here.</p>
+      </div>
+      <div class="card">
+        <div class="big">10 / 10<small>decided by the core</small></div>
+        <p style="margin:14px 0 0;color:var(--ink2)">9 byte-identical to click's own code, 1 identical in behaviour (<span class="mono">'cls'</span> for <span class="mono">"cls"</span>). 0 wrong fixes shipped. Median 367 s per fix on the core's own search.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-con">
+    <p class="eyebrow">The contract</p>
+    <h2 id="h-con">What the core does, and what the suit may do.</h2>
+    <div class="contract">
+      <div class="card core-col"><h3>The core · fluidnet with buggy</h3>
+        <ul>
+          <li><i>→</i><span>finds where — buggy's laws, a hive of workers when the target is large</span></li>
+          <li><i>→</i><span>generates every candidate from taught vocabulary</span></li>
+          <li><i>→</i><span>refuses candidates a property disproves, before any test runs</span></li>
+          <li><i>→</i><span>certifies on the full suite, and ships only the one fix that passes</span></li>
+          <li><i>→</i><span>when two pass, runs the suit's test against both and chooses</span></li>
+        </ul>
+      </div>
+      <div class="card suit-col"><h3>The suit · an AI agent</h3>
+        <ul>
+          <li><i>+</i><span>hands in data: one test — an input and its expected output</span></li>
+          <li><i>+</i><span>hands in vocabulary: a rule and its property, for a shape the core has never seen</span></li>
+          <li><i>−</i><span>never writes a fix</span></li>
+          <li><i>−</i><span>never decides what ships — a test it writes must separate the fixes, or the core ignores it</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-open">
+    <p class="eyebrow">Measured, and not yet</p>
+    <h2 id="h-open">What this page does not claim.</h2>
+    <div class="notes">
+      <div class="note"><b>Vocabulary from the suit</b><p>A rule written by the suit, applied by the core to eleven held-out bugs of the same shape, is being measured now. The same test with a hand-written rule: 11 of 11 repaired, byte-exact.</p></div>
+      <div class="note"><b>Speed</b><p>An agent alone fixed each bug in a median 51 s; the core takes a median 367 s — locating and proving uniqueness is the cost of deciding without a model.</p></div>
+      <div class="note"><b>Harder bugs</b><p>Every bug here is one token wide. Multi-line and genuinely new bugs are not measured on this page.</p></div>
+    </div>
+  </section>
+
+  <footer>Sources: fluidnet a560d72 with the uncommitted changes this race forced, fluidfix e09eb24 with <span class="mono">repair --budget</span>, buggy a0aa44a, target pallets/click 06b2a67. Every number on this page comes from a logged run.</footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+var DEC = [
+  ["parser.py:437","cmp",0,"exact"],["termui.py:295","bool",0,"exact"],["_termui_impl.py:730","additive",0,"exact"],
+  ["core.py:2853","sibling",0,"exact"],["_textwrap.py:168","augassign",51101,"exact"],["_termui_impl.py:579","getdefault",0,"exact"],
+  ["core.py:1877","andor",46652,"same behaviour"],["core.py:2023","minmax",0,"exact"],["utils.py:84","literal",0,"exact"],["core.py:3396","bareguard",0,"exact"]];
+var box = document.getElementById("decisions");
+DEC.forEach(function(d){
+  var el = document.createElement("div"); el.className = "d" + (d[2] ? " asked" : "");
+  el.innerHTML = '<div class="at">' + d[0] + '</div><div class="op">' + d[1] + '</div>' +
+    '<div class="who"><span class="dot"></span>decided by the core</div>' +
+    '<div class="res">' + (d[3] === "exact" ? "shipped · byte-exact" : "shipped · same behaviour") + '</div>' +
+    (d[2] ? '<div class="port">suit asked for one test · ' + d[2].toLocaleString() + ' tokens</div>' : '<div class="port" style="color:var(--ink3)">suit not asked · 0 tokens</div>');
+  box.appendChild(el);
+});
+
+if (!window.THREE) return;
+var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var stage = document.getElementById("stage"), canvas = document.getElementById("scene");
+var renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+var scene = new THREE.Scene(); scene.fog = new THREE.Fog(0x050B0A, 9, 19);
+var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100); camera.position.set(0, 1.1, 10.2);
+var C = {core: 0x5FD3C8, hi: 0xD6FFF9, buggy: 0xE2A54A, suit: 0xB3B8CC, ok: 0x7CD48B, bad: 0xE8866B, warn: 0xE2A54A};
+scene.add(new THREE.AmbientLight(0x6f8f8a, 0.55));
+var key = new THREE.PointLight(0xbffcf4, 1.4, 30); key.position.set(4, 5, 6); scene.add(key);
+var rim = new THREE.PointLight(0xE2A54A, 0.7, 20); rim.position.set(-6, -2, -3); scene.add(rim);
+
+var world = new THREE.Group(); scene.add(world);
+
+// the core
+var coreG = new THREE.Group(); world.add(coreG);
+var shell = new THREE.Mesh(new THREE.IcosahedronGeometry(1.25, 1),
+  new THREE.MeshStandardMaterial({color: 0x123b37, emissive: C.core, emissiveIntensity: 0.28, metalness: 0.55, roughness: 0.35, flatShading: true, transparent: true, opacity: 0.92}));
+coreG.add(shell);
+var edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1.27, 1)),
+  new THREE.LineBasicMaterial({color: C.hi, transparent: true, opacity: 0.55}));
+coreG.add(edges);
+var heart = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), new THREE.MeshBasicMaterial({color: C.hi, transparent: true, opacity: 0.9}));
+coreG.add(heart);
+var halo = new THREE.Mesh(new THREE.SphereGeometry(1.7, 32, 32), new THREE.MeshBasicMaterial({color: C.core, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, depthWrite: false}));
+coreG.add(halo);
+// judge ring
+var ring = new THREE.Mesh(new THREE.TorusGeometry(1.95, 0.025, 12, 160), new THREE.MeshBasicMaterial({color: C.core, transparent: true, opacity: 0.8}));
+ring.rotation.x = Math.PI / 2.35; world.add(ring);
+var beads = [];
+for (var i = 0; i < 6; i++) {
+  var b = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 12), new THREE.MeshBasicMaterial({color: C.hi}));
+  world.add(b); beads.push(b);
+}
+// the taught nets
+var nets = [], NETN = 3;
+function addNet(color) {
+  var n = new THREE.Mesh(new THREE.OctahedronGeometry(0.2, 0), new THREE.MeshStandardMaterial({color: color || 0x2b6f68, emissive: C.core, emissiveIntensity: 0.35, metalness: 0.4, roughness: 0.4, flatShading: true}));
+  world.add(n); nets.push({m: n, a: nets.length * (Math.PI * 2 / 5), r: 2.55, tilt: 0.35 + nets.length * 0.2}); return n;
+}
+for (i = 0; i < NETN; i++) addNet();
+// buggy: the locator lobe
+var buggyG = new THREE.Group(); buggyG.position.set(-2.9, 1.2, 0.3); world.add(buggyG);
+var bug = new THREE.Mesh(new THREE.DodecahedronGeometry(0.42, 0), new THREE.MeshStandardMaterial({color: 0x5a3a10, emissive: C.buggy, emissiveIntensity: 0.55, metalness: 0.4, roughness: 0.35, flatShading: true}));
+buggyG.add(bug);
+var link = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-2.9, 1.2, 0.3), new THREE.Vector3(-1.0, 0.45, 0.1)]),
+  new THREE.LineBasicMaterial({color: C.buggy, transparent: true, opacity: 0.5}));
+world.add(link);
+var beamGeo = new THREE.ConeGeometry(0.9, 3.0, 32, 1, true); beamGeo.translate(0, -1.5, 0);
+var beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({color: C.buggy, transparent: true, opacity: 0.07, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false}));
+buggyG.add(beam);
+// click's files
+var files = new THREE.Group(); files.position.set(-0.4, -2.75, 0.2); world.add(files);
+var cells = [], HOT = 13;
+for (var r = 0; r < 4; r++) for (var c = 0; c < 8; c++) {
+  var h = 0.12 + ((r * 7 + c * 13) % 9) / 18;
+  var m = new THREE.Mesh(new THREE.BoxGeometry(0.34, h, 0.34), new THREE.MeshStandardMaterial({color: 0x173230, emissive: 0x0d2522, metalness: 0.3, roughness: 0.6}));
+  m.position.set((c - 3.5) * 0.46, h / 2, (r - 1.5) * 0.46); files.add(m); cells.push(m);
+}
+// the suit: the AI agent at the edge
+var suit = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(4.1, 2)),
+  new THREE.LineBasicMaterial({color: C.suit, transparent: true, opacity: 0.09}));
+world.add(suit);
+function port(pos) {
+  var g = new THREE.Group(); g.position.copy(pos); world.add(g);
+  var t = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 10, 48), new THREE.MeshBasicMaterial({color: C.suit, transparent: true, opacity: 0.55}));
+  t.lookAt(new THREE.Vector3(0, 0, 0)); g.add(t); return {g: g, t: t};
+}
+var pData = port(new THREE.Vector3(3.55, 1.15, 1.2)), pVocab = port(new THREE.Vector3(3.25, -1.2, 1.6));
+
+// packets
+var packets = [];
+function send(from, to, color, dur, done, size) {
+  var s = new THREE.Mesh(new THREE.SphereGeometry(size || 0.09, 14, 14), new THREE.MeshBasicMaterial({color: color}));
+  var mid = from.clone().add(to).multiplyScalar(0.5); mid.y += 0.6;
+  var curve = new THREE.QuadraticBezierCurve3(from.clone(), mid, to.clone());
+  world.add(s); packets.push({m: s, c: curve, t: 0, d: dur || 1.2, done: done});
+}
+var P = {files: function(){ return cells[HOT].getWorldPosition(new THREE.Vector3()).applyMatrix4(new THREE.Matrix4().copy(world.matrixWorld).invert()); },
+  core: new THREE.Vector3(0, 0, 0), buggy: new THREE.Vector3(-2.9, 1.2, 0.3), data: pData.g.position, vocab: pVocab.g.position};
+
+// labels
+var tagsEl = document.getElementById("tags"), tags = [];
+function tag(cls, html, get) { var e = document.createElement("div"); e.className = "tag " + cls; e.innerHTML = html; tagsEl.appendChild(e); tags.push({e: e, get: get}); return e; }
+var tCore = tag("core", "<b>fluidnet</b> · the core", function(){ return new THREE.Vector3(0, 1.62, 0); });
+tag("core", "judge · certified + the only fix", function(){ return new THREE.Vector3(1.55, -0.95, 1.2); });
+tag("core", "taught nets", function(){ return nets[0].m.position.clone().add(new THREE.Vector3(0, 0.38, 0)); });
+tag("buggy", "<b>buggy</b> · where", function(){ return new THREE.Vector3(-2.9, 1.82, 0.3); });
+tag("", "click · its files and 2,240 tests", function(){ return new THREE.Vector3(-0.4, -3.2, 1.3); });
+var tSuit = tag("suit dim", "<b>the suit</b> · AI agent", function(){ return new THREE.Vector3(3.2, 2.55, 0.6); });
+var tData = tag("suit dim", "data port", function(){ return pData.g.position.clone().add(new THREE.Vector3(0.1, 0.42, 0)); });
+var tVocab = tag("suit dim", "vocabulary port", function(){ return pVocab.g.position.clone().add(new THREE.Vector3(0.1, -0.42, 0)); });
+
+// scenario scripts: each step = [duration s, caption, action]
+var capEl = document.getElementById("cap"), stepEl = document.getElementById("step"), tcEl = document.getElementById("tc"), tsEl = document.getElementById("ts");
+var state = {mode: "known", i: 0, t: 0, suitOn: 0, ringColor: C.core, hot: 0, beam: 0, heat: 0, tokens: 0, rule: false};
+function hotFile(on) { cells[HOT].material.emissive.setHex(on === "bad" ? 0x6b2416 : on === "ok" ? 0x1f5a2a : 0x0d2522); }
+var COMMON = [
+  [1.4, "A test goes red in click.", function(){ hotFile("bad"); state.ringColor = C.core; }],
+  [1.9, "buggy, the core's locator, measures where: the mutation experiment on every line the failing tests run.", function(){ state.beam = 1; send(P.files(), P.buggy, C.buggy, 1.2); }],
+  [1.5, "The location travels into the core. No model, no prompt — laws over measured facts.", function(){ state.beam = 0; send(P.buggy, P.core, C.buggy, 1.1); }]];
+var SCRIPTS = {
+  known: COMMON.concat([
+    [2.0, "The taught nets generate every candidate for that line; a property refuses the impossible ones before a test runs.", function(){ state.heat = 1; }],
+    [2.1, "The judge: certified on the full suite, and the only fix at its line that passes.", function(){ state.heat = 0; state.spin = 1; }],
+    [2.2, "Shipped, byte-exact. The suit was never asked. 0 tokens.", function(){ state.spin = 0; send(P.core, P.files(), C.ok, 1.2, function(){ hotFile("ok"); }); }]]),
+  ambig: COMMON.concat([
+    [2.0, "The nets generate candidates. Two different fixes both pass all 2,240 tests.", function(){ state.heat = 1; }],
+    [2.1, "The judge refuses to guess: AMBIGUOUS. The core needs one fact it does not have.", function(){ state.heat = 0; state.ringColor = C.warn; }],
+    [2.1, "It asks the suit for data — not a fix: one test, an input and its expected output.", function(){ state.suitOn = 1; send(P.core, P.data, C.hi, 1.1); }],
+    [1.8, "The suit hands in the test. ~49,000 tokens, at the edge.", function(){ state.tokens += 49000; send(P.data, P.core, C.suit, 1.2); }],
+    [2.0, "The core runs the test against both fixes: one passes, one fails. The core chooses.", function(){ state.suitOn = 0; state.ringColor = C.ok; state.spin = 1; }],
+    [2.2, "Shipped, certified with the new test included. The decision was the core's.", function(){ state.spin = 0; send(P.core, P.files(), C.ok, 1.2, function(){ hotFile("ok"); }); }]]),
+  novel: COMMON.concat([
+    [2.0, "No taught net recognises this shape. The core has no vocabulary for it.", function(){ state.ringColor = 0x6b807b; }],
+    [2.1, "It asks the suit for vocabulary — a rule and its property, never the fix.", function(){ state.suitOn = 1; send(P.core, P.vocab, C.hi, 1.1); }],
+    [1.9, "The suit hands in the rule, once. The core adds it as a new net.", function(){ state.tokens += 50000; send(P.vocab, P.core, C.suit, 1.2, function(){ if (!state.rule) { addNet(0x3a5f7a); state.rule = true; } }); }],
+    [2.1, "The core fixes the bug with its new vocabulary, certifies it, proves it is the only fix.", function(){ state.suitOn = 0; state.ringColor = C.core; state.spin = 1; }],
+    [2.4, "Every later bug of this shape: the core alone, 0 tokens. The novel became known.", function(){ state.spin = 0; send(P.core, P.files(), C.ok, 1.2, function(){ hotFile("ok"); }); }]])
+};
+function setMode(mode) {
+  state.mode = mode; state.i = 0; state.t = 0; state.tokens = 0; state.suitOn = 0; state.heat = 0; state.spin = 0; state.beam = 0;
+  state.ringColor = C.core; hotFile(null);
+  if (state.rule) { var n = nets.pop(); world.remove(n.m); state.rule = false; }
+  stepEl.textContent = {known: "a shape the core knows", ambig: "two fixes pass the suite", novel: "a shape the core has never seen"}[mode];
+  document.querySelectorAll(".modes button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.mode === mode)); });
+  run();
+}
+function run() { var s = SCRIPTS[state.mode][state.i]; capEl.textContent = s[1]; s[2](); }
+document.querySelectorAll(".modes button").forEach(function(b){ b.addEventListener("click", function(){ setMode(b.dataset.mode); }); });
+
+// drag to turn
+var drag = null, rotY = -0.35, rotX = 0.08, vel = 0;
+canvas.addEventListener("pointerdown", function(e){ drag = {x: e.clientX, y: e.clientY}; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener("pointermove", function(e){ if (!drag) return; var dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag = {x: e.clientX, y: e.clientY};
+  rotY += dx * 0.006; rotX = Math.max(-0.5, Math.min(0.6, rotX + dy * 0.004)); vel = dx * 0.0006; });
+canvas.addEventListener("pointerup", function(){ drag = null; });
+
+function resize() { var w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h;
+  camera.position.z = w < 560 ? 13.5 : 10.2; camera.updateProjectionMatrix(); }
+window.addEventListener("resize", resize); resize();
+
+var clock = new THREE.Clock(), v = new THREE.Vector3(), ringC = new THREE.Color(C.core), suitO = 0.09;
+function frame() {
+  var dt = Math.min(clock.getDelta(), 0.05), T = clock.elapsedTime;
+  if (!drag) { rotY += reduce ? 0 : 0.0016 + vel; vel *= 0.95; }
+  world.rotation.y = rotY; world.rotation.x = rotX;
+  // script clock
+  state.t += dt; var s = SCRIPTS[state.mode][state.i];
+  if (state.t > s[0]) { state.t = 0; state.i += 1; if (state.i >= SCRIPTS[state.mode].length) { state.i = 0; state.tokens = 0; hotFile(null);
+      if (state.rule && state.mode === "novel") { var n = nets.pop(); world.remove(n.m); state.rule = false; } } run(); }
+  tsEl.textContent = state.tokens ? "~" + state.tokens.toLocaleString() : "0";
+  // core
+  var pulse = 1 + Math.sin(T * 2.2) * 0.03 + state.heat * 0.06 * Math.sin(T * 14);
+  heart.scale.setScalar(pulse); shell.rotation.y = T * 0.12; shell.rotation.z = T * 0.05; edges.rotation.copy(shell.rotation);
+  shell.material.emissiveIntensity = 0.28 + state.heat * 0.25; halo.material.opacity = 0.06 + state.heat * 0.05;
+  ringC.lerp(new THREE.Color(state.ringColor), 0.08); ring.material.color.copy(ringC);
+  ring.rotation.z = T * (state.spin ? 1.4 : 0.25);
+  beads.forEach(function(b, k){ var a = T * (state.spin ? 2.4 : 0.6) + k * Math.PI / 3; v.set(Math.cos(a) * 1.95, Math.sin(a) * 1.95, 0).applyEuler(ring.rotation); b.position.copy(v); b.material.color.copy(ringC); });
+  nets.forEach(function(n, k){ var a = T * 0.35 + n.a; n.m.position.set(Math.cos(a) * n.r, Math.sin(a * 1.3) * n.tilt, Math.sin(a) * n.r);
+    n.m.rotation.x = T * 0.8; n.m.rotation.y = T * 0.6; n.m.material.emissiveIntensity = 0.35 + state.heat * (0.5 + 0.5 * Math.sin(T * 12 + k)); });
+  bug.rotation.y = T * 0.6; bug.rotation.x = T * 0.3;
+  beam.material.opacity += ((state.beam ? 0.16 : 0.05) - beam.material.opacity) * 0.1;
+  beam.rotation.z = -0.35 + Math.sin(T * 1.6) * 0.18 * (state.beam ? 1 : 0.3);
+  suitO += ((state.suitOn ? 0.32 : 0.09) - suitO) * 0.06; suit.material.opacity = suitO; suit.rotation.y = -T * 0.02;
+  [pData, pVocab].forEach(function(p){ p.t.material.opacity = 0.35 + (suitO - 0.09) * 1.8; p.t.rotation.z = T; });
+  cells.forEach(function(m, k){ if (k !== HOT) m.material.emissive.setHex(0x0d2522); });
+  for (var i = packets.length - 1; i >= 0; i--) { var p = packets[i]; p.t += dt / p.d;
+    if (p.t >= 1) { world.remove(p.m); packets.splice(i, 1); if (p.done) p.done(); continue; }
+    p.m.position.copy(p.c.getPoint(p.t)); }
+  renderer.render(scene, camera);
+  // labels
+  var w = stage.clientWidth, h = stage.clientHeight;
+  tags.forEach(function(t){ v.copy(t.get()).applyMatrix4(world.matrixWorld).project(camera);
+    t.e.style.left = ((v.x + 1) / 2 * w) + "px"; t.e.style.top = ((1 - v.y) / 2 * h) + "px"; t.e.style.visibility = v.z > 1 ? "hidden" : "visible"; });
+  [tSuit, tData, tVocab].forEach(function(e){ e.classList.toggle("dim", suitO < 0.18); });
+  requestAnimationFrame(frame);
+}
+setMode("known"); frame();
+})();
+</script>

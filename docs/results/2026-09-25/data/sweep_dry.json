@@ -1,0 +1,322 @@
+{
+ "status": "CERTIFIED",
+ "why": "23 site(s) certified",
+ "sites": [
+  {
+   "file": "examples/aliases/aliases.py",
+   "line": 44,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        rv = click.Group.get_command(self, ctx, cmd_name)",
+   "after": "        rv = super().get_command(ctx, cmd_name)",
+   "verdict": "UNEXERCISED",
+   "why": "no test runs this line; only the property vouches for it"
+  },
+  {
+   "file": "examples/aliases/aliases.py",
+   "line": 55,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "            return click.Group.get_command(self, ctx, actual_cmd)",
+   "after": "            return super().get_command(ctx, actual_cmd)",
+   "verdict": "UNEXERCISED",
+   "why": "no test runs this line; only the property vouches for it"
+  },
+  {
+   "file": "examples/aliases/aliases.py",
+   "line": 67,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "            return click.Group.get_command(self, ctx, matches[0])",
+   "after": "            return super().get_command(ctx, matches[0])",
+   "verdict": "UNEXERCISED",
+   "why": "no test runs this line; only the property vouches for it"
+  },
+  {
+   "file": "src/click/_winconsole.py",
+   "line": 116,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        io.RawIOBase.isatty(self)",
+   "after": "        super().isatty()",
+   "verdict": "UNEXERCISED",
+   "why": "no test runs this line; only the property vouches for it"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 912,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        BaseCommand.__init__(self, name, context_settings)",
+   "after": "        super().__init__(name, context_settings)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 1141,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        Command.__init__(self, name, **attrs)",
+   "after": "        super().__init__(name, **attrs)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 1166,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        rv = Command.collect_usage_pieces(self, ctx)",
+   "after": "        rv = super().collect_usage_pieces(ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 1171,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        Command.format_options(self, ctx, formatter)",
+   "after": "        super().format_options(ctx, formatter)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 1247,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        rest = Command.parse_args(self, ctx, args)",
+   "after": "        rest = super().parse_args(ctx, args)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 1268,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "                    Command.invoke(self, ctx)",
+   "after": "                    super().invoke(ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 1286,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "                Command.invoke(self, ctx)",
+   "after": "                super().invoke(ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 1298,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "            Command.invoke(self, ctx)",
+   "after": "            super().invoke(ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 1369,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        MultiCommand.__init__(self, name, **attrs)",
+   "after": "        super().__init__(name, **attrs)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 1428,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        MultiCommand.__init__(self, name, **attrs)",
+   "after": "        super().__init__(name, **attrs)",
+   "verdict": "UNEXERCISED",
+   "why": "no test runs this line; only the property vouches for it"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 1766,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        Parameter.__init__(self, param_decls, type=type, **attrs)",
+   "after": "        super().__init__(param_decls, type=type, **attrs)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 1983,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        return Parameter.get_default(self, ctx)",
+   "after": "        return super().get_default(ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 2010,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        rv = Parameter.resolve_envvar_value(self, ctx)",
+   "after": "        rv = super().resolve_envvar_value(ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 2031,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        return Parameter.full_process_value(self, ctx, value)",
+   "after": "        return super().full_process_value(ctx, value)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/core.py",
+   "line": 2050,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        Parameter.__init__(self, param_decls, required=required, **attrs)",
+   "after": "        super().__init__(param_decls, required=required, **attrs)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/exceptions.py",
+   "line": 46,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        ClickException.__init__(self, message)",
+   "after": "        super().__init__(message)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/exceptions.py",
+   "line": 85,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        UsageError.__init__(self, message, ctx)",
+   "after": "        super().__init__(message, ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/exceptions.py",
+   "line": 116,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        BadParameter.__init__(self, message, ctx, param, param_hint)",
+   "after": "        super().__init__(message, ctx, param, param_hint)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/exceptions.py",
+   "line": 162,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        UsageError.__init__(self, message, ctx)",
+   "after": "        super().__init__(message, ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/exceptions.py",
+   "line": 188,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        UsageError.__init__(self, message, ctx)",
+   "after": "        super().__init__(message, ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/exceptions.py",
+   "line": 201,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        UsageError.__init__(self, message, ctx)",
+   "after": "        super().__init__(message, ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/exceptions.py",
+   "line": 211,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        ClickException.__init__(self, hint)",
+   "after": "        super().__init__(hint)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/types.py",
+   "line": 281,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        rv = IntParamType.convert(self, value, param, ctx)",
+   "after": "        rv = super().convert(value, param, ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  },
+  {
+   "file": "src/click/types.py",
+   "line": 347,
+   "net": "/private/tmp/claude-501/-Users-kanchetidevieswar-neo/28c8e60e-c59e-48d8-820c-efb4fd717585/scratchpad/sweep/super_call.py",
+   "kind": 4,
+   "cls": "explicit-base-call-to-super",
+   "before": "        rv = FloatParamType.convert(self, value, param, ctx)",
+   "after": "        rv = super().convert(value, param, ctx)",
+   "verdict": "APPLIED",
+   "why": "property proved \u00b7 suite green before and after, stable"
+  }
+ ],
+ "suite_runs": 4,
+ "seconds": 4.71,
+ "committed": false,
+ "rolled_back_exact": true,
+ "diff": "--- a/src/click/core.py\n+++ b/src/click/core.py\n@@ -911,3 +911,3 @@\n     ):\n-        BaseCommand.__init__(self, name, context_settings)\n+        super().__init__(name, context_settings)\n         #: the callback to execute when the command fires.  This might be\n@@ -1140,3 +1140,3 @@\n     ):\n-        Command.__init__(self, name, **attrs)\n+        super().__init__(name, **attrs)\n         if no_args_is_help is None:\n@@ -1165,3 +1165,3 @@\n     def collect_usage_pieces(self, ctx):\n-        rv = Command.collect_usage_pieces(self, ctx)\n+        rv = super().collect_usage_pieces(ctx)\n         rv.append(self.subcommand_metavar)\n@@ -1170,3 +1170,3 @@\n     def format_options(self, ctx, formatter):\n-        Command.format_options(self, ctx, formatter)\n+        super().format_options(ctx, formatter)\n         self.format_commands(ctx, formatter)\n@@ -1246,3 +1246,3 @@\n \n-        rest = Command.parse_args(self, ctx, args)\n+        rest = super().parse_args(ctx, args)\n         if self.chain:\n@@ -1267,3 +1267,3 @@\n                 with ctx:\n-                    Command.invoke(self, ctx)\n+                    super().invoke(ctx)\n                     return _process_result([] if self.chain else None)\n@@ -1285,3 +1285,3 @@\n                 ctx.invoked_subcommand = cmd_name\n-                Command.invoke(self, ctx)\n+                super().invoke(ctx)\n                 sub_ctx = cmd.make_context(cmd_name, args, parent=ctx)\n@@ -1297,3 +1297,3 @@\n             ctx.invoked_subcommand = \"*\" if args else None\n-            Command.invoke(self, ctx)\n+            super().invoke(ctx)\n \n@@ -1368,3 +1368,3 @@\n     def __init__(self, name=None, commands=None, **attrs):\n-        MultiCommand.__init__(self, name, **attrs)\n+        super().__init__(name, **attrs)\n         #: the registered subcommands by their exported names.\n@@ -1765,3 +1765,3 @@\n         default_is_missing = attrs.get(\"default\", _missing) is _missing\n-        Parameter.__init__(self, param_decls, type=type, **attrs)\n+        super().__init__(param_decls, type=type, **attrs)\n \n@@ -1982,3 +1982,3 @@\n             return None\n-        return Parameter.get_default(self, ctx)\n+        return super().get_default(ctx)\n \n@@ -2009,3 +2009,3 @@\n     def resolve_envvar_value(self, ctx):\n-        rv = Parameter.resolve_envvar_value(self, ctx)\n+        rv = super().resolve_envvar_value(ctx)\n         if rv is not None:\n@@ -2030,3 +2030,3 @@\n             return self.prompt_for_value(ctx)\n-        return Parameter.full_process_value(self, ctx, value)\n+        return super().full_process_value(ctx, value)\n \n@@ -2049,3 +2049,3 @@\n                 required = attrs.get(\"nargs\", 1) > 0\n-        Parameter.__init__(self, param_decls, required=required, **attrs)\n+        super().__init__(param_decls, required=required, **attrs)\n         if self.default is not None and self.nargs < 0:\n--- a/src/click/exceptions.py\n+++ b/src/click/exceptions.py\n@@ -45,3 +45,3 @@\n     def __init__(self, message, ctx=None):\n-        ClickException.__init__(self, message)\n+        super().__init__(message)\n         self.ctx = ctx\n@@ -84,3 +84,3 @@\n     def __init__(self, message, ctx=None, param=None, param_hint=None):\n-        UsageError.__init__(self, message, ctx)\n+        super().__init__(message, ctx)\n         self.param = param\n@@ -115,3 +115,3 @@\n     ):\n-        BadParameter.__init__(self, message, ctx, param, param_hint)\n+        super().__init__(message, ctx, param, param_hint)\n         self.param_type = param_type\n@@ -161,3 +161,3 @@\n             message = f\"no such option: {option_name}\"\n-        UsageError.__init__(self, message, ctx)\n+        super().__init__(message, ctx)\n         self.option_name = option_name\n@@ -187,3 +187,3 @@\n     def __init__(self, option_name, message, ctx=None):\n-        UsageError.__init__(self, message, ctx)\n+        super().__init__(message, ctx)\n         self.option_name = option_name\n@@ -200,3 +200,3 @@\n     def __init__(self, message, ctx=None):\n-        UsageError.__init__(self, message, ctx)\n+        super().__init__(message, ctx)\n \n@@ -210,3 +210,3 @@\n             hint = \"unknown error\"\n-        ClickException.__init__(self, hint)\n+        super().__init__(hint)\n         self.ui_filename = ui_filename\n--- a/src/click/types.py\n+++ b/src/click/types.py\n@@ -280,3 +280,3 @@\n     def convert(self, value, param, ctx):\n-        rv = IntParamType.convert(self, value, param, ctx)\n+        rv = super().convert(value, param, ctx)\n         if self.clamp:\n@@ -346,3 +346,3 @@\n     def convert(self, value, param, ctx):\n-        rv = FloatParamType.convert(self, value, param, ctx)\n+        rv = super().convert(value, param, ctx)\n         if self.clamp:\n",
+ "deselected": [
+  "tests/test_arguments.py::test_bytes_args"
+ ]
+}

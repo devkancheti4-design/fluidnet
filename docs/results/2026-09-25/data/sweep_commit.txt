@@ -1,0 +1,84 @@
+  APPLIED           src/click/core.py:912           explicit-base-call-to-super
+                                                    - BaseCommand.__init__(self, name, context_settings)
+                                                    + super().__init__(name, context_settings)
+  APPLIED           src/click/core.py:1141          explicit-base-call-to-super
+                                                    - Command.__init__(self, name, **attrs)
+                                                    + super().__init__(name, **attrs)
+  APPLIED           src/click/core.py:1166          explicit-base-call-to-super
+                                                    - rv = Command.collect_usage_pieces(self, ctx)
+                                                    + rv = super().collect_usage_pieces(ctx)
+  APPLIED           src/click/core.py:1171          explicit-base-call-to-super
+                                                    - Command.format_options(self, ctx, formatter)
+                                                    + super().format_options(ctx, formatter)
+  APPLIED           src/click/core.py:1247          explicit-base-call-to-super
+                                                    - rest = Command.parse_args(self, ctx, args)
+                                                    + rest = super().parse_args(ctx, args)
+  APPLIED           src/click/core.py:1268          explicit-base-call-to-super
+                                                    - Command.invoke(self, ctx)
+                                                    + super().invoke(ctx)
+  APPLIED           src/click/core.py:1286          explicit-base-call-to-super
+                                                    - Command.invoke(self, ctx)
+                                                    + super().invoke(ctx)
+  APPLIED           src/click/core.py:1298          explicit-base-call-to-super
+                                                    - Command.invoke(self, ctx)
+                                                    + super().invoke(ctx)
+  APPLIED           src/click/core.py:1369          explicit-base-call-to-super
+                                                    - MultiCommand.__init__(self, name, **attrs)
+                                                    + super().__init__(name, **attrs)
+  APPLIED           src/click/core.py:1766          explicit-base-call-to-super
+                                                    - Parameter.__init__(self, param_decls, type=type, **attrs)
+                                                    + super().__init__(param_decls, type=type, **attrs)
+  APPLIED           src/click/core.py:1983          explicit-base-call-to-super
+                                                    - return Parameter.get_default(self, ctx)
+                                                    + return super().get_default(ctx)
+  APPLIED           src/click/core.py:2010          explicit-base-call-to-super
+                                                    - rv = Parameter.resolve_envvar_value(self, ctx)
+                                                    + rv = super().resolve_envvar_value(ctx)
+  APPLIED           src/click/core.py:2031          explicit-base-call-to-super
+                                                    - return Parameter.full_process_value(self, ctx, value)
+                                                    + return super().full_process_value(ctx, value)
+  APPLIED           src/click/core.py:2050          explicit-base-call-to-super
+                                                    - Parameter.__init__(self, param_decls, required=required, **attrs)
+                                                    + super().__init__(param_decls, required=required, **attrs)
+  APPLIED           src/click/exceptions.py:46      explicit-base-call-to-super
+                                                    - ClickException.__init__(self, message)
+                                                    + super().__init__(message)
+  APPLIED           src/click/exceptions.py:85      explicit-base-call-to-super
+                                                    - UsageError.__init__(self, message, ctx)
+                                                    + super().__init__(message, ctx)
+  APPLIED           src/click/exceptions.py:116     explicit-base-call-to-super
+                                                    - BadParameter.__init__(self, message, ctx, param, param_hint)
+                                                    + super().__init__(message, ctx, param, param_hint)
+  APPLIED           src/click/exceptions.py:162     explicit-base-call-to-super
+                                                    - UsageError.__init__(self, message, ctx)
+                                                    + super().__init__(message, ctx)
+  APPLIED           src/click/exceptions.py:188     explicit-base-call-to-super
+                                                    - UsageError.__init__(self, message, ctx)
+                                                    + super().__init__(message, ctx)
+  APPLIED           src/click/exceptions.py:201     explicit-base-call-to-super
+                                                    - UsageError.__init__(self, message, ctx)
+                                                    + super().__init__(message, ctx)
+  APPLIED           src/click/exceptions.py:211     explicit-base-call-to-super
+                                                    - ClickException.__init__(self, hint)
+                                                    + super().__init__(hint)
+  APPLIED           src/click/types.py:281          explicit-base-call-to-super
+                                                    - rv = IntParamType.convert(self, value, param, ctx)
+                                                    + rv = super().convert(value, param, ctx)
+  APPLIED           src/click/types.py:347          explicit-base-call-to-super
+                                                    - rv = FloatParamType.convert(self, value, param, ctx)
+                                                    + rv = super().convert(value, param, ctx)
+  UNEXERCISED       examples/aliases/aliases.py:44  explicit-base-call-to-super
+                                                    no test runs this line; only the property vouches for it
+  UNEXERCISED       examples/aliases/aliases.py:55  explicit-base-call-to-super
+                                                    no test runs this line; only the property vouches for it
+  UNEXERCISED       examples/aliases/aliases.py:67  explicit-base-call-to-super
+                                                    no test runs this line; only the property vouches for it
+  UNEXERCISED       src/click/_winconsole.py:116    explicit-base-call-to-super
+                                                    no test runs this line; only the property vouches for it
+  UNEXERCISED       src/click/core.py:1428          explicit-base-call-to-super
+                                                    no test runs this line; only the property vouches for it
+
+CERTIFIED: 23 site(s) certified
+  APPLIED 23 · UNEXERCISED 5 · 4 suite runs · 4.76s · 0 tokens
+  deselected by you, before and after alike: tests/test_arguments.py::test_bytes_args
+  committed

@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fluidnet × buggy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F4F1; --paper:#FFFFFF; --ink:#141C18; --ink2:#48534E; --ink3:#78837D; --rule:#D5DCD7;
+  --fn:#0C6B72; --fn-soft:#DCEDED; --bg:#9E640E; --bg-soft:#F4E7CF;
+  --pass:#2C7A3B; --pass-soft:#DFF0E1; --fail:#AE3F2A; --fail-soft:#F6E0D9; --muted-soft:#E8ECE9;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#0E1412; --paper:#151D1A; --ink:#E3EAE6; --ink2:#A7B3AD; --ink3:#7A8781; --rule:#26312C;
+  --fn:#58B8BE; --fn-soft:#15302E; --bg:#E2A94A; --bg-soft:#322818;
+  --pass:#71C281; --pass-soft:#17301C; --fail:#E4846A; --fail-soft:#3A1F18; --muted-soft:#1C2522;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0E1412; --paper:#151D1A; --ink:#E3EAE6; --ink2:#A7B3AD; --ink3:#7A8781; --rule:#26312C;
+  --fn:#58B8BE; --fn-soft:#15302E; --bg:#E2A94A; --bg-soft:#322818;
+  --pass:#71C281; --pass-soft:#17301C; --fail:#E4846A; --fail-soft:#3A1F18; --muted-soft:#1C2522;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:16px/1.6 var(--sans);padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:1080px;margin:0 auto}
+a{color:var(--fn)}
+:focus-visible{outline:2px solid var(--fn);outline-offset:2px;border-radius:4px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--ground) 88%,transparent);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--rule);margin-inline:-20px;padding:12px 20px}
+.bar .wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.mark{font:700 17px var(--display);letter-spacing:-.01em}
+.mark b{color:var(--fn)} .mark i{font-style:normal;color:var(--bg)}
+.nav{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin-left:auto}
+.nav a{color:var(--ink2);text-decoration:none} .nav a:hover{color:var(--ink)}
+section{padding-block:56px 8px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin:0 0 12px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-weight:700;font-size:clamp(34px,5.6vw,64px);line-height:1.02;letter-spacing:-.025em;max-width:16ch}
+h2{font-weight:700;font-size:clamp(26px,3.4vw,38px);line-height:1.1;letter-spacing:-.02em;max-width:22ch}
+h3{font-weight:500;font-size:19px;letter-spacing:-.005em}
+.lede{font-size:18px;color:var(--ink2);max-width:62ch;margin:18px 0 0}
+p{max-width:66ch}
+.fn{color:var(--fn)} .bg{color:var(--bg)} .ok{color:var(--pass)} .no{color:var(--fail)}
+/* hero chart */
+.race{margin-top:34px;background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:22px 22px 16px}
+.diff{font:14px/1.7 var(--mono);border-radius:8px;overflow-x:auto;margin:0 0 20px}
+.diff div{padding:2px 12px;white-space:pre}
+.diff .m{background:var(--fail-soft);color:var(--fail)} .diff .p{background:var(--pass-soft);color:var(--pass)}
+.lane{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;margin:14px 0}
+.lane .who{font-size:14px;font-weight:600} .lane .who small{display:block;font-weight:400;color:var(--ink3);font-size:12px}
+.track{position:relative;height:38px}
+.seg{position:absolute;top:6px;height:26px;border-radius:5px;font:500 12px var(--mono);display:flex;align-items:center;
+  padding:0 8px;white-space:nowrap;overflow:hidden;color:var(--paper);transform-origin:left;animation:grow .9s ease-out both}
+.seg.gray{background:var(--ink3)} .seg.bgc{background:var(--bg)} .seg.fnc{background:var(--fn)}
+.endcap{position:absolute;top:4px;font:600 12px var(--mono);padding:5px 8px;border-radius:5px;white-space:nowrap}
+.endcap.no{background:var(--fail-soft)} .endcap.ok{background:var(--pass-soft)}
+.axis{position:relative;height:22px;margin-left:164px;border-top:1px solid var(--rule)}
+.axis span{position:absolute;top:4px;transform:translateX(-50%);font:11px var(--mono);color:var(--ink3)}
+@keyframes grow{from{transform:scaleX(.001)}to{transform:scaleX(1)}}
+@media (max-width:640px){.lane{grid-template-columns:1fr;gap:6px}.axis{margin-left:0}
+  .track{height:66px}.endcap{left:auto!important;right:0;top:38px}}
+/* architecture */
+.seg-ctl{display:inline-flex;border:1px solid var(--rule);border-radius:999px;padding:4px;background:var(--paper);margin:22px 0 16px}
+.seg-ctl button{font:500 14px var(--sans);border:0;background:transparent;color:var(--ink2);padding:8px 16px;border-radius:999px;cursor:pointer}
+.seg-ctl button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.arch{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:12px;overflow-x:auto}
+.arch svg{display:block;min-width:760px;width:100%;height:auto}
+.node rect{fill:var(--paper);stroke:var(--rule);stroke-width:1.2;transition:opacity .35s,fill .35s}
+.node text{font-family:var(--sans);fill:var(--ink)} .node .t{font-size:14px;font-weight:600} .node .s{font-size:11.5px;fill:var(--ink3)}
+.node.bgn rect{fill:var(--bg-soft);stroke:var(--bg)} .node.fnn rect{fill:var(--fn-soft);stroke:var(--fn)}
+.node.okn rect{fill:var(--pass-soft);stroke:var(--pass)} .node.non rect{fill:var(--fail-soft);stroke:var(--fail)}
+.edge{fill:none;stroke:var(--ink3);stroke-width:1.5;transition:opacity .35s}
+.edge.bge{stroke:var(--bg)} .edge.dash{stroke-dasharray:5 4}
+.off{opacity:.12}
+.contain{fill:none;stroke:var(--rule);stroke-dasharray:4 4}
+.clabel{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;fill:var(--ink3)}
+.packet{fill:var(--fn)} .packet.b{fill:var(--bg)}
+.caption{font-size:15px;color:var(--ink2);margin:14px 2px 0;max-width:72ch;min-height:3.2em}
+/* ledger */
+.ledger{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px}
+@media (max-width:820px){.ledger{grid-template-columns:1fr}}
+.col{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:22px}
+.col.with{border-top:4px solid var(--bg);border-top-left-radius:0;border-top-right-radius:0}
+.col.without{border-top:4px solid var(--fn);border-top-left-radius:0;border-top-right-radius:0}
+.col h3{margin-bottom:14px}
+.item{display:grid;grid-template-columns:26px 1fr;gap:10px;padding:12px 0;border-top:1px solid var(--rule)}
+.item:first-of-type{border-top:0}
+.sign{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font:600 15px var(--mono);margin-top:2px}
+.sign.plus{background:var(--pass-soft);color:var(--pass)} .sign.minus{background:var(--fail-soft);color:var(--fail)}
+.item p{margin:0;font-size:15px} .item .num{display:inline-block;margin-top:6px;font:500 12.5px var(--mono);color:var(--ink2);
+  background:var(--muted-soft);padding:2px 8px;border-radius:5px}
+/* cases */
+.cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:26px}
+.case{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.case .tag{font:500 12px var(--mono);color:var(--ink3)}
+.case .diff{margin:0;font-size:12.5px}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vs div{border-radius:8px;padding:10px 12px;font-size:13.5px;background:var(--muted-soft)}
+.vs b{display:block;font:600 12px var(--mono);margin-bottom:3px}
+.case .lesson{font-size:14px;color:var(--ink2);border-top:1px solid var(--rule);padding-top:10px;margin:0}
+/* runs */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:26px}
+.tile{background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:16px 18px}
+.tile .k{font-size:13px;color:var(--ink2)} .tile .v{font:700 30px var(--display);letter-spacing:-.02em;margin-top:2px}
+.tile .d{font-size:12.5px;color:var(--ink3);margin-top:2px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:26px 0 12px}
+.chips button{font:500 13px var(--sans);border:1px solid var(--rule);background:var(--paper);color:var(--ink2);border-radius:999px;padding:6px 13px;cursor:pointer}
+.chips button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
+.tablewrap{overflow-x:auto;background:var(--paper);border:1px solid var(--rule);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:1040px;font-size:14px}
+th{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:12px 14px;border-bottom:1px solid var(--rule)}
+td{padding:11px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer} tbody tr:hover td{background:var(--muted-soft)}
+.pill{display:inline-flex;align-items:center;gap:6px;font:500 12.5px var(--mono);padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pill.exact{background:var(--pass-soft);color:var(--pass)} .pill.refused{background:var(--fail-soft);color:var(--fail)}
+.pill.equiv{background:var(--fn-soft);color:var(--fn)} .pill.pending{background:var(--muted-soft);color:var(--ink3)}
+.pill.none{background:var(--bg-soft);color:var(--bg)} .pill.ambig{background:var(--bg-soft);color:var(--bg)} .pill.timeout{background:var(--fail-soft);color:var(--fail)}
+td .t{display:block;font:12px var(--mono);color:var(--ink3);margin-top:3px}
+tr.detail td{background:var(--muted-soft);font-size:14px;color:var(--ink2);cursor:default}
+.note{font-size:13.5px;color:var(--ink3);margin-top:12px}
+/* teach once */
+.teach{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px}
+@media (max-width:820px){.teach{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.panel .big{font:700 44px var(--display);letter-spacing:-.03em;line-height:1}
+.panel .big small{font:500 15px var(--sans);color:var(--ink2);letter-spacing:0;margin-left:6px}
+.panel p{margin:0;font-size:15px;color:var(--ink2)}
+.grid12{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.cell{border-radius:8px;padding:8px 10px;background:var(--pass-soft);color:var(--pass);font-size:12.5px}
+.cell b{display:block;font:500 12.5px var(--mono);color:var(--ink)} .cell span{font-family:var(--mono)}
+.cell.train{background:var(--bg-soft);color:var(--bg)}
+.score{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14.5px;margin:0}
+.score dt{font:700 20px var(--display);text-align:right} .score dd{margin:0;color:var(--ink2);align-self:center}
+.score .z{color:var(--pass)}
+/* pending */
+.pending{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:22px}
+.pend{border:1px dashed var(--rule);border-radius:12px;padding:16px 18px;background:transparent}
+.pend b{font-family:var(--display);font-weight:500;font-size:17px;display:block;margin-bottom:4px}
+.pend p{margin:0;font-size:14px;color:var(--ink2)}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--rule);font-size:13.5px;color:var(--ink3)}
+footer .mono{color:var(--ink2)}
+@media (prefers-reduced-motion: reduce){.seg{animation:none}}
+</style>
+
+<header class="bar"><div class="wrap">
+  <div class="mark"><b>fluidnet</b> × <i>buggy</i></div>
+  <nav class="nav" aria-label="Sections">
+    <a href="#architecture">Architecture</a><a href="#ledger">Plus &amp; minus</a><a href="#cases">Cases</a><a href="#runs">Runs</a><a href="#agent">vs an AI agent</a><a href="#teach">Teach once</a><a href="#pending">Not done yet</a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+<section aria-labelledby="h-hero" style="padding-top:48px">
+  <p class="eyebrow">49 real click bugs · 2,240 tests as the judge · 0 tokens</p>
+  <h1 id="h-hero">The knowledge was there. The search wasn't.</h1>
+  <p class="lede">fluidnet repairs bug shapes it was taught, and proves each fix with your own test suite. On a real repository, what it lacked was
+  <em>where to look</em>. buggy answers where — and fluidnet only lets that help through if its own certification passes.</p>
+
+  <div class="race" role="figure" aria-labelledby="h-race">
+    <p class="eyebrow" id="h-race" style="margin-bottom:10px">click · parser.py:437 · a strictness bug, taught shape</p>
+    <div class="diff"><div class="m">-        if len(state.rargs) &lt;= nargs:</div><div class="p">+        if len(state.rargs) &lt; nargs:</div></div>
+    <div class="lane"><div class="who fn">Without buggy<small>the guard searches blind</small></div>
+      <div class="track" id="laneA"></div></div>
+    <div class="lane"><div class="who bg">With buggy<small>buggy locates, fluidnet certifies</small></div>
+      <div class="track" id="laneB"></div></div>
+    <div class="axis" id="axis"></div>
+    <p class="note" style="margin-top:14px">Both took about five minutes. The blind search opened <span class="mono">core.py</span>, <span class="mono">decorators.py</span> and
+      <span class="mono">formatting.py</span> and ran out of budget without ever opening <span class="mono">parser.py</span>. buggy's mutation lane ranked line 437 first and proposed the fix; fluidnet certified it against the full suite.</p>
+  </div>
+</section>
+
+<section id="architecture" aria-labelledby="h-arch">
+  <p class="eyebrow">Architecture</p>
+  <h2 id="h-arch">Same nets, same laws — one new question asked first.</h2>
+  <div class="seg-ctl" role="group" aria-label="Show architecture">
+    <button type="button" id="mode-without" aria-pressed="false">Without buggy</button>
+    <button type="button" id="mode-with" aria-pressed="true">With buggy</button>
+  </div>
+  <div class="arch">
+    <svg viewBox="0 0 1000 560" role="img" aria-labelledby="arch-title arch-desc">
+      <title id="arch-title">fluidnet architecture, with and without buggy</title>
+      <desc id="arch-desc">A red test either goes to the guard, which ranks files and searches blind within a budget, or to buggy, which locates lines and may propose a fix. Inside each net, fluidfix localises, lets integer laws decide, has taught classes propose rewrites, refutes wrong ones with the property gate, and judges every candidate with your suite. With buggy, every fix buggy helped with is certified by fluidnet before it counts; a rejected one sends the search back to the whole file.</desc>
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M1 1L9 5L1 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect class="contain" x="430" y="58" width="270" height="478" rx="14"/>
+      <text class="clabel" x="446" y="80">inside each net · fluidfix</text>
+      <g id="edges"></g><g id="nodes"></g><circle id="packet" class="packet" r="7" cx="-20" cy="-20"/>
+    </svg>
+  </div>
+  <p class="caption" id="arch-cap"></p>
+</section>
+
+<section id="ledger" aria-labelledby="h-ledger">
+  <p class="eyebrow">Plus &amp; minus · every line measured</p>
+  <h2 id="h-ledger">What buggy adds, and what it costs.</h2>
+  <div class="ledger">
+    <div class="col with">
+      <h3 class="bg">With buggy</h3>
+      <div class="item"><span class="sign plus">+</span><div><p>Finds the line in a big repository. The mutation experiment ranked <span class="mono">parser.py:437</span> first where the blind search never opened the file.</p><span class="num">279 s to the line · blind: refused at 303 s</span></div></div>
+      <div class="item"><span class="sign plus">+</span><div><p>Proposes one-token fixes that fluidnet then certifies — three of the ten race bugs were won this way.</p><span class="num">cmp 307 s · additive 207 s · andor 145 s</span></div></div>
+      <div class="item"><span class="sign plus">+</span><div><p>Narrows the proof. A taught sibling-attribute bug in the 3,930-line <span class="mono">core.py</span> needs thousands of checks to prove its fix unique across the file.</p><span class="num">released: refused after 35 min · patched, end to end: exact and certified in 586 s</span></div></div>
+      <div class="item"><span class="sign plus">+</span><div><p>Can never ship alone. Anything it proposes or narrows is certified by fluidnet — red before, green after, stable, nothing else broken — or dropped.</p><span class="num">rule enforced in fluidnet 54d7330</span></div></div>
+      <div class="item"><span class="sign minus">−</span><div><p>Costs minutes up front, even when the blind search would have been quick.</p><span class="num">locate 100–356 s · additive: 41 s blind vs 207 s with buggy</span></div></div>
+      <div class="item"><span class="sign minus">−</span><div><p>Can point at the wrong files. For a bug in <span class="mono">_textwrap.py</span> it named three others; the nets spent 24 minutes there. fluidnet now falls back to searching alone.</p><span class="num">1,456 s refused · fallback added</span></div></div>
+      <div class="item"><span class="sign minus">−</span><div><p>Had a blind spot: test ids with spaces made a red suite read as "cannot be judged". Found here, fixed in buggy the same day.</p><span class="num">literal bug: nothing attempted in 19 s · buggy a0aa44a</span></div></div>
+      <div class="item"><span class="sign minus">−</span><div><p>Its fixes can change formatting — correct and certified, but not byte-identical to the maintainer's line. And under its focus, uniqueness is proved only within its lines; the certificate says so.</p><span class="num">andor: <span class="mono">'cls'</span> written for <span class="mono">"cls"</span></span></div></div>
+    </div>
+    <div class="col without">
+      <h3 class="fn">Without buggy</h3>
+      <div class="item"><span class="sign plus">+</span><div><p>Nothing extra to install or trust, and a uniqueness proof over the whole file.</p><span class="num">fluidfix alone · six laws · your suite</span></div></div>
+      <div class="item"><span class="sign plus">+</span><div><p>Fast when the failure points at the file.</p><span class="num">4 of 10 race bugs fixed blind · 41–232 s</span></div></div>
+      <div class="item"><span class="sign plus">+</span><div><p>Refuses cleanly: every refusal restores the file byte for byte, and nothing wrong ships.</p><span class="num">46 / 46 refusals byte-identical · 0 / 27 repairs wrong</span></div></div>
+      <div class="item"><span class="sign minus">−</span><div><p>The search is the bottleneck. Six of ten race bugs ran out of the 300-second budget, the right file ranked anywhere from first to last.</p><span class="num">6 / 10 refused at budget · file rank 1–8 of 8</span></div></div>
+      <div class="item"><span class="sign minus">−</span><div><p>Broad taught shapes in big files are slow: the proof of uniqueness has to judge every candidate on every matching line.</p><span class="num">sibling in core.py: past 30 min, whole file</span></div></div>
+      <div class="item"><span class="sign minus">−</span><div><p>Handed the right file, it is excellent — but in these runs <em>I</em> handed it over, from knowing where each bug was planted. That is an upper bound no real user has, and closing that gap is the whole reason buggy exists.</p><span class="num">file handed over: 9 / 10 exact (median 44 s) · the tenth, a broad shape, needed buggy's lines</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="cases" aria-labelledby="h-cases">
+  <p class="eyebrow">Four cases that decided the design</p>
+  <h2 id="h-cases">Where each approach won, lost, and what changed.</h2>
+  <div class="cases">
+    <article class="case"><span class="tag">cmp · parser.py:437</span><h3>buggy finds what the search never opened</h3>
+      <div class="diff"><div class="m">-  if len(state.rargs) &lt;= nargs:</div><div class="p">+  if len(state.rargs) &lt; nargs:</div></div>
+      <div class="vs"><div><b class="fn">without</b>refused · 302 s</div><div><b class="bg">with buggy</b>exact · 307 s</div></div>
+      <p class="lesson">buggy's proposal went through fluidnet's certifier before it counted.</p></article>
+    <article class="case"><span class="tag">sibling · core.py:2853</span><h3>Proving it unique is what took 35 minutes</h3>
+      <div class="diff"><div class="m">-  existing_value = ctx.parent.get(self.name, UNSET)</div><div class="p">+  existing_value = ctx.params.get(self.name, UNSET)</div></div>
+      <div class="vs"><div><b class="fn">whole file</b>refused · 2,113 s · handed the file: past 30 min</div><div><b class="bg">buggy's lines</b>exact · 586 s end to end, certified</div></div>
+      <p class="lesson">Taught ≠ fast. A broad shape in a big file needs a narrow scope; the certificate names it.</p></article>
+    <article class="case"><span class="tag">augassign · _textwrap.py:168</span><h3>buggy named the wrong files</h3>
+      <div class="diff"><div class="m">-  self.initial_indent -= indent</div><div class="p">+  self.initial_indent += indent</div></div>
+      <div class="vs"><div><b class="fn">file handed over</b>exact · 89 s</div><div><b class="bg">with buggy</b>refused · 1,456 s</div></div>
+      <p class="lesson">Now: when buggy's files lead nowhere, fluidnet searches alone.</p></article>
+    <article class="case"><span class="tag">literal · utils.py:84</span><h3>A blind spot in buggy, found by the race</h3>
+      <div class="diff"><div class="m">-  words = words[: i + 2]</div><div class="p">+  words = words[: i + 1]</div></div>
+      <p class="note" style="margin:0" >The failing test's id: <span class="mono">test_make_default_short_help[no-wrap mark-sentence &lt; max]</span></p>
+      <div class="vs"><div><b class="fn">file handed over</b>exact · 34 s</div><div><b class="bg">with buggy</b>nothing tried · 19 s</div></div>
+      <p class="lesson">Spaced test ids read as "harness". Fixed in buggy; fluidnet no longer lets that verdict stop it.</p></article>
+  </div>
+</section>
+
+<section id="runs" aria-labelledby="h-runs">
+  <p class="eyebrow">Every measured run</p>
+  <h2 id="h-runs">The ten race bugs, five ways.</h2>
+  <div class="tiles">
+    <div class="tile"><div class="k">taught-shape bugs repaired exactly, file handed over</div><div class="v">36 / 39</div><div class="d">27 released → 36 after the localisation fix · the last 3 are one broad shape that needs buggy's lines</div></div>
+    <div class="tile"><div class="k">wrong fixes shipped</div><div class="v ok">0</div><div class="d">0 of 27 repairs differ from click's code</div></div>
+    <div class="tile"><div class="k">judgement where repair couldn't reach</div><div class="v">22 / 22</div><div class="d">right fixes certified · wrong fixes refused 22 / 22</div></div>
+    <div class="tile"><div class="k">model calls</div><div class="v">0</div><div class="d">no keys in any run's environment</div></div>
+  </div>
+  <div class="chips" role="group" aria-label="Filter race bugs">
+    <button type="button" data-f="all" aria-pressed="true">All ten</button>
+    <button type="button" data-f="bgwin" aria-pressed="false">buggy won</button>
+    <button type="button" data-f="bglose" aria-pressed="false">buggy lost</button>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>bug</th><th>without buggy</th><th>with buggy · released</th><th>with buggy · final</th><th>AI agent</th><th>file handed over · upper bound</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+  <p class="note">"Released" ran fluidfix 0.16.0; "final" ran today's build, pinned — fluidfix e09eb24 plus <span class="mono">repair --budget</span>, fluidnet a560d72 plus the changes this race forced (nets cheapest first, bounded searches, buggy redeployed as a hive when its first run leaves lines unmeasured, and a certified fix must be the only one at its line). "File handed over" is a controlled condition, not real use: the tester planted each bug and passed its file straight to <span class="mono">fluidfix repair --file</span> — an upper bound. Click a row for its story.</p>
+</section>
+
+<section id="agent" aria-labelledby="h-agent">
+  <p class="eyebrow">Against an AI agent · same ten bugs, same machine</p>
+  <h2 id="h-agent">The agent was faster, and got all ten.</h2>
+  <p class="lede">A frontier model working as a coding agent, one bug at a time, each on its own history-free copy of click, no network, no other copy of click — told only how to run the suite. Scored exactly as fluidnet was: byte-exact against click's code, the full suite, tests untouched.</p>
+  <div class="tiles">
+    <div class="tile"><div class="k">AI agent · exact</div><div class="v">10 / 10</div><div class="d">median 51 s · 42–167 s · no test file touched</div></div>
+    <div class="tile"><div class="k">AI agent · tokens</div><div class="v">~50k</div><div class="d">per bug · 506,431 for all ten</div></div>
+    <div class="tile"><div class="k">fluidnet + buggy · exact</div><div class="v">8 / 10</div><div class="d">median 367 s · 0 wrong · 2 refused as ambiguous</div></div>
+    <div class="tile"><div class="k">fluidnet + buggy · tokens</div><div class="v ok">0</div><div class="d">no model, offline, the same answer every run</div></div>
+  </div>
+  <div class="ledger">
+    <div class="col with">
+      <h3 class="bg">Where the agent won</h3>
+      <div class="item"><span class="sign plus">+</span><div><p>Speed: it reads the traceback and goes to the line. fluidnet spends about four minutes locating, then proves the fix unique — on these bugs, roughly seven times longer.</p><span class="num">median 51 s vs 367 s</span></div></div>
+      <div class="item"><span class="sign plus">+</span><div><p>Judgement where the suite has none. On the two bugs fluidnet refused, two different fixes pass all 2,240 tests; the agent chose the right one by reading the code — a string cannot be subtracted, and the neighbouring method already had the correct check.</p><span class="num">_textwrap.py:168 · core.py:1877</span></div></div>
+    </div>
+    <div class="col without">
+      <h3 class="fn">Where fluidnet still stands</h3>
+      <div class="item"><span class="sign plus">+</span><div><p>No model and no tokens: about 50,000 tokens a bug for the agent, none for fluidnet, which runs offline and gives the same answer every time.</p><span class="num">506,431 tokens vs 0</span></div></div>
+      <div class="item"><span class="sign plus">+</span><div><p>Every fix it ships is the only one its search found that passes. On those same two bugs a wrong fix also passes the suite — the agent was right, but nothing checked that it was. fluidnet says so instead of guessing.</p><span class="num">0 wrong · refusals name both fixes</span></div></div>
+      <div class="item"><span class="sign minus">−</span><div><p>These bugs are one token wide in a well-tested library — the easiest regime for an agent, and the one where fluidnet's proofs cost the most time for the least visible gain.</p><span class="num">one run each · not a benchmark of harder bugs</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="teach" aria-labelledby="h-teach">
+  <p class="eyebrow">Teach once · the novel becomes known</p>
+  <h2 id="h-teach">One example taught. Every other instance done.</h2>
+  <p class="lede">Two tests of the claim that knowledge, not a model, does the work — one on bugs, one on work that is not a bug at all.</p>
+  <div class="teach">
+    <div class="panel">
+      <span class="eyebrow" style="margin:0">A bug shape no net knew</span>
+      <div class="big">11 / 11<small>held-out click bugs repaired, byte-exact</small></div>
+      <div class="diff" style="margin:0"><div class="m">-  open(mode, filename).close()</div><div class="p">+  open(filename, mode).close()</div></div>
+      <p>Swapped names in a call. Before: no class in any net could write this fix. Taught from the one bug above; then every other swapped-name bug click's suite catches, in six files, repaired — each the unique fix, the full suite green after, no tokens.</p>
+      <div class="grid12"><div class="cell train"><b>utils.py:141</b><span>taught from this · 43 s</span></div><div class="cell"><b>termui.py:1017</b><span>exact · 57 s</span></div><div class="cell"><b>termui.py:631</b><span>exact · 57 s</span></div><div class="cell"><b>_termui_impl.py:293</b><span>exact · 69 s</span></div><div class="cell"><b>decorators.py:346</b><span>exact · 7 min</span></div><div class="cell"><b>decorators.py:374</b><span>exact · 7 min</span></div><div class="cell"><b>types.py:1307</b><span>exact · 20 min</span></div><div class="cell"><b>core.py:2155</b><span>exact · 35 min</span></div><div class="cell"><b>core.py:3217</b><span>exact · 37 min</span></div><div class="cell"><b>core.py:1474</b><span>exact · 37 min</span></div><div class="cell"><b>core.py:1484</b><span>exact · 39 min</span></div><div class="cell"><b>core.py:1838</b><span>exact · 40 min</span></div></div>
+      <p class="note" style="margin:0">File handed over, as in the 36 / 39 run — the repair step alone. The time is the uniqueness proof: in the 3,930-line <span class="mono">core.py</span> the class lights 319 lines, and every candidate on them is judged. buggy's focus is what cut that from 35 minutes to 3 on the sibling case.</p>
+    </div>
+    <div class="panel">
+      <span class="eyebrow" style="margin:0">Work that is not a bug · <span class="mono">fluidnet sweep</span></span>
+      <div class="big">22 / 23<small>identical to what click's maintainers wrote</small></div>
+      <div class="diff" style="margin:0"><div class="m">-  rv = IntParamType.convert(self, value, param, ctx)</div><div class="p">+  rv = super().convert(value, param, ctx)</div></div>
+      <p>click's own 2020 commit "use super() consistently" (08a0d69) is the answer key. Taught from that one line, swept over the code as it was before the commit. Nothing is red here, so the judge changes one rule: the property proves each rewrite, the suite runs the line, green before and after.</p>
+      <dl class="score">
+        <dt>23</dt><dd>sites certified · 4.7 s · 4 suite runs · no model</dd>
+        <dt>22</dt><dd>byte-identical to the maintainers' lines</dd>
+        <dt>1</dt><dd>where they deleted a redundant method instead — same behaviour</dd>
+        <dt>2</dt><dd>of theirs held back: no test runs those lines (one is Windows-only)</dd>
+        <dt class="z">0</dt><dd>wrong edits</dd>
+      </dl>
+      <p class="note" style="margin:0">One test deselected before and after alike — it cannot run on Python 3.11. With <span class="mono">--trust-property</span> the two held-back lines are written too, and the only difference left from the maintainers is the method they deleted.</p>
+    </div>
+  </div>
+  <p class="note">Does the novel become known? Replayed in commit order, 38% of 565 real fixes from click, arrow, rich and sortedcontainers repeat a pattern already seen in the same repository — 31% early in a project's life, 43% late — counting only ten pattern families; the rest fit none of those ten, which is a limit of the list, not proof they are new. A repeating pattern is still not a fix: that step is what the two panels above measure.</p>
+</section>
+
+<section id="pending" aria-labelledby="h-pending">
+  <p class="eyebrow">Not done yet</p>
+  <h2 id="h-pending">What this page does not know yet.</h2>
+  <div class="pending">
+    <div class="pend"><b>A deciding input for ambiguous fixes</b><p>When two fixes both pass, fluidnet should find the input where they differ and show both outputs, so a person picks in seconds. Not built yet.</p></div>
+    <div class="pend"><b>buggy's missing operator</b><p>buggy cannot mutate <span class="mono">-=</span> / <span class="mono">+=</span>, so it could only propose deleting the line. Reported to buggy's owner, who confirmed it.</p></div>
+    <div class="pend"><b>Harder bugs</b><p>Every bug here is one token wide. Multi-line and novel bugs — where an agent's judgement matters most — are not measured on this page.</p></div>
+  </div>
+</section>
+
+<footer>
+  Sources: <a href="https://github.com/devkancheti4-design/fluidnet">fluidnet</a> <span class="mono">42be787</span>, <span class="mono">a560d72</span> (local) and <span class="mono">sweep</span> (not yet committed) ·
+  fluidfix <span class="mono">e09eb24</span> (local, unreleased) ·
+  <a href="https://github.com/devkancheti4-design/buggy">buggy</a> <span class="mono">a0aa44a</span> ·
+  target: <span class="mono">pallets/click 06b2a67</span>. Every number on this page comes from a logged run.
+</footer>
+</main>
+
+<script>
+(function(){
+var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* ---------- hero chart, to scale ---------- */
+var MAX = 420;
+function pct(s){ return (100 * s / MAX) + "%"; }
+function seg(parent, a, b, cls, label, delay){
+  var d = document.createElement("div"); d.className = "seg " + cls; d.style.left = pct(a); d.style.width = pct(b - a);
+  d.textContent = label; d.style.animationDelay = (delay || 0) + "s"; d.title = label + " · " + Math.round(a) + "–" + Math.round(b) + " s";
+  parent.appendChild(d);
+}
+function cap(parent, s, cls, label){
+  var d = document.createElement("div"); d.className = "endcap " + cls; d.style.left = "calc(" + pct(s) + " + 6px)"; d.textContent = label; parent.appendChild(d);
+}
+var A = document.getElementById("laneA"), B = document.getElementById("laneB");
+seg(A, 0, 303, "gray", "core.py → decorators.py → formatting.py", 0);
+cap(A, 303, "no", "refused · 303 s");
+seg(B, 0, 268, "bgc", "buggy: parser.py:437 first", 0);
+seg(B, 268, 307, "fnc", "certify", .7);
+cap(B, 307, "ok", "exact · 307 s");
+var ax = document.getElementById("axis");
+[0, 60, 120, 180, 240, 300, 360, 420].forEach(function(s){ var t = document.createElement("span"); t.style.left = pct(s); t.textContent = s + " s"; ax.appendChild(t); });
+
+/* ---------- architecture ---------- */
+var N = {
+  test:    {x:20,  y:250, w:160, h:62, t:"A test goes red", s:"no hints", c:"non", m:"both"},
+  buggy:   {x:220, y:80,  w:180, h:66, t:"buggy locates", s:"experiment · commit · coverage", c:"bgn", m:"with"},
+  scope:   {x:220, y:190, w:180, h:58, t:"Search scope", s:"buggy's lines → the file", c:"bgn", m:"with"},
+  rank:    {x:220, y:380, w:180, h:66, t:"Guard ranks files", s:"blind · 300 s budget", c:"", m:"without"},
+  loc:     {x:450, y:96,  w:230, h:58, t:"Localise", s:"executed lines, whole statements", c:"", m:"both"},
+  laws:    {x:450, y:176, w:230, h:58, t:"Six laws + placement", s:"integer rules decide", c:"", m:"both"},
+  classes: {x:450, y:256, w:230, h:58, t:"Taught classes propose", s:"candidate rewrites", c:"", m:"both"},
+  prop:    {x:450, y:336, w:230, h:58, t:"Property gate", s:"refutes before any test", c:"okn", m:"both"},
+  suite:   {x:450, y:416, w:230, h:72, t:"Your suite, every candidate", s:"ships only a unique fix", c:"okn", m:"both"},
+  certify: {x:760, y:150, w:210, h:66, t:"fluidnet certifies", s:"everything buggy touched", c:"fnn", m:"with"},
+  cert:    {x:760, y:300, w:210, h:62, t:"Certificate", s:"commit, or a dry-run diff", c:"okn", m:"both"},
+  refused: {x:760, y:426, w:210, h:62, t:"Refused", s:"tree untouched, all logged", c:"", m:"both"}
+};
+function cx(n){ return N[n].x + N[n].w / 2; } function cy(n){ return N[n].y + N[n].h / 2; }
+function R(n){ return N[n].x + N[n].w; } function L(n){ return N[n].x; } function T(n){ return N[n].y; } function Bt(n){ return N[n].y + N[n].h; }
+var E = [
+  {d:"M"+R("test")+" "+(cy("test")-14)+" L205 "+(cy("test")-14)+" L205 "+cy("buggy")+" L"+(L("buggy")-2)+" "+cy("buggy"), m:"with", c:"bge"},
+  {d:"M"+cx("buggy")+" "+Bt("buggy")+" L"+cx("buggy")+" "+(T("scope")-2), m:"with", c:"bge"},
+  {d:"M"+R("scope")+" "+cy("scope")+" L425 "+cy("scope")+" L425 "+cy("loc")+" L"+(L("loc")-2)+" "+cy("loc"), m:"with", c:"bge"},
+  {d:"M"+R("buggy")+" "+(cy("buggy")-10)+" L"+cx("certify")+" "+(cy("buggy")-10)+" L"+cx("certify")+" "+(T("certify")-2), m:"with", c:"bge", k:"proposal"},
+  {d:"M"+R("test")+" "+(cy("test")+14)+" L205 "+(cy("test")+14)+" L205 "+cy("rank")+" L"+(L("rank")-2)+" "+cy("rank"), m:"without", c:""},
+  {d:"M"+R("rank")+" "+cy("rank")+" L415 "+cy("rank")+" L415 "+(cy("loc")+10)+" L"+(L("loc")-2)+" "+(cy("loc")+10), m:"without", c:""},
+  {d:"M"+cx("loc")+" "+Bt("loc")+" L"+cx("loc")+" "+(T("laws")-2), m:"both", c:""},
+  {d:"M"+cx("laws")+" "+Bt("laws")+" L"+cx("laws")+" "+(T("classes")-2), m:"both", c:""},
+  {d:"M"+cx("classes")+" "+Bt("classes")+" L"+cx("classes")+" "+(T("prop")-2), m:"both", c:""},
+  {d:"M"+cx("prop")+" "+Bt("prop")+" L"+cx("prop")+" "+(T("suite")-2), m:"both", c:""},
+  {d:"M"+R("suite")+" "+(cy("suite")-16)+" L720 "+(cy("suite")-16)+" L720 "+cy("certify")+" L"+(L("certify")-2)+" "+cy("certify"), m:"with", c:"bge", k:"focus"},
+  {d:"M"+cx("certify")+" "+Bt("certify")+" L"+cx("certify")+" "+(T("cert")-2), m:"with", c:""},
+  {d:"M"+(L("certify"))+" "+(Bt("certify")-12)+" L735 "+(Bt("certify")-12)+" L735 172 L735 172", m:"with", c:"bge dash", k:"reject", hide:true},
+  {d:"M"+R("suite")+" "+(cy("suite")+4)+" L740 "+(cy("suite")+4)+" L740 "+cy("cert")+" L"+(L("cert")-2)+" "+cy("cert"), m:"without", c:""},
+  {d:"M"+R("suite")+" "+(cy("suite")+22)+" L"+(L("refused")-2)+" "+(cy("suite")+22), m:"both", c:""}
+];
+var NS = "http://www.w3.org/2000/svg", eg = document.getElementById("edges"), ng = document.getElementById("nodes");
+function el(n, a){ var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+E.forEach(function(e){ if (e.hide) return; var p = el("path", {d:e.d, "class":"edge " + e.c, "marker-end":"url(#ah)"}); p.dataset.m = e.m; eg.appendChild(p); e.el = p; });
+Object.keys(N).forEach(function(k){
+  var n = N[k], g = el("g", {"class":"node " + n.c}); g.dataset.m = n.m;
+  g.appendChild(el("rect", {x:n.x, y:n.y, width:n.w, height:n.h, rx:10}));
+  var t1 = el("text", {x:n.x + n.w / 2, y:n.y + n.h / 2 - 3, "text-anchor":"middle", "class":"t"}); t1.textContent = n.t;
+  var t2 = el("text", {x:n.x + n.w / 2, y:n.y + n.h / 2 + 15, "text-anchor":"middle", "class":"s"}); t2.textContent = n.s;
+  g.appendChild(t1); g.appendChild(t2); ng.appendChild(g); n.g = g;
+});
+var CAP = {
+  without: "Without buggy: the guard ranks files by circumstantial evidence and searches them in order, each within the whole-file scope, until a unique fix passes your suite or the 300-second budget runs out. On click it repaired 4 of 10 race bugs; the other 6 ran out of budget.",
+  "with": "With buggy: buggy locates first and may propose a fix. Anything buggy touched — its own proposal, or a fix found inside its lines — is certified by fluidnet before it counts. If certification fails, or buggy's files lead nowhere, fluidnet searches the whole file alone."
+};
+var PATH = {
+  "with": ["test", "buggy", "scope", "loc", "laws", "classes", "prop", "suite", "certify", "cert"],
+  without: ["test", "rank", "loc", "laws", "classes", "prop", "suite", "cert"]
+};
+var mode = "with", raf = null;
+function setMode(m){
+  mode = m;
+  document.getElementById("mode-with").setAttribute("aria-pressed", m === "with");
+  document.getElementById("mode-without").setAttribute("aria-pressed", m === "without");
+  Object.keys(N).forEach(function(k){ var on = N[k].m === "both" || N[k].m === m; N[k].g.classList.toggle("off", !on); });
+  E.forEach(function(e){ if (!e.el) return; var on = e.m === "both" || e.m === m; e.el.classList.toggle("off", !on); });
+  document.getElementById("arch-cap").textContent = CAP[m];
+  document.getElementById("packet").setAttribute("class", "packet" + (m === "with" ? " b" : ""));
+  run();
+}
+function run(){
+  if (raf) cancelAnimationFrame(raf);
+  var pk = document.getElementById("packet"), pts = PATH[mode].map(function(k){ return [cx(k), cy(k)]; });
+  if (reduce){ pk.setAttribute("cx", pts[pts.length - 1][0]); pk.setAttribute("cy", pts[pts.length - 1][1]); return; }
+  var segs = [], total = 0;
+  for (var i = 1; i < pts.length; i++){ var dx = pts[i][0] - pts[i-1][0], dy = pts[i][1] - pts[i-1][1], l = Math.hypot(dx, dy); segs.push(l); total += l; }
+  var t0 = null, dur = 5200;
+  function step(ts){
+    if (!t0) t0 = ts; var f = ((ts - t0) % (dur + 900)) / dur; if (f > 1) f = 1;
+    var d = f * total, i = 0; while (i < segs.length - 1 && d > segs[i]) { d -= segs[i]; i++; }
+    var u = Math.min(1, d / segs[i]);
+    pk.setAttribute("cx", pts[i][0] + (pts[i+1][0] - pts[i][0]) * u);
+    pk.setAttribute("cy", pts[i][1] + (pts[i+1][1] - pts[i][1]) * u);
+    PATH[mode].forEach(function(k, j){ N[k].g.style.filter = (j === i || j === i + 1) && f < 1 ? "drop-shadow(0 0 5px var(--fn))" : ""; });
+    raf = requestAnimationFrame(step);
+  }
+  raf = requestAnimationFrame(step);
+}
+document.getElementById("mode-with").addEventListener("click", function(){ setMode("with"); });
+document.getElementById("mode-without").addEventListener("click", function(){ setMode("without"); });
+setMode("with");
+
+/* ---------- runs ---------- */
+var RUNS = [
+  ["cmp", "parser.py:437", ["refused", 302], ["exact", 307, "buggy's proposed fix, certified by fluidnet"], ["exact", 130, "released"], "win",
+   "The blind guard searched three other files and ran out of budget. buggy's mutation lane ranked line 437 first and proposed <= → <; fluidnet certified it."],
+  ["bool", "termui.py:295", ["refused", 303], ["refused", 769, "released localisation missed the line"], ["exact", 45, "patched"], "lose",
+   "The fault sits on a continuation line of a multi-line statement; the released localisation never showed it to the class. Patched: exact in 45 s."],
+  ["additive", "_termui_impl.py:730", ["exact", 41], ["exact", 207, "buggy's proposed fix, certified"], ["exact", 39, "released"], "tie",
+   "Both got it. The blind search was faster — buggy's locate step cost 166 s on a bug the guard found on its own."],
+  ["sibling", "core.py:2853", ["refused", 377], ["exact", 586, "patched, end to end: buggy 362 s + focused repair 185 s + certify 39 s · released: refused, 2,113 s"], ["timeout", 1800, "patched, whole file: stopped at my 30-min limit"], "win",
+   "A broad taught shape in the 3,930-line core.py. Released, with buggy: refused after 35 minutes. Even handed the right file, the whole-file proof ran past 30 minutes — handing over the file is not enough here. What worked was buggy's 11 flagged lines as the scope. The whole run on the patched build, measured end to end: buggy located in 362 s, the net repaired within 30 lines around buggy's 11 in 185 s (ctx.parent → ctx.params, byte-exact), and fluidnet certified that fix in 39 s — 586 s, with the certificate saying uniqueness was proved within those lines only."],
+  ["augassign", "_textwrap.py:168", ["refused", 304], ["refused", 1456, "buggy named three other files"], ["exact", 89, "released"], "lose",
+   "buggy named core.py, formatting.py and testing.py. The nets refused all three; there was no fallback then. There is now."],
+  ["getdefault", "_termui_impl.py:579", ["exact", 52], ["refused", 565, "released localisation"], ["exact", 44, "patched"], "lose",
+   "The blind search won here. Note: this line is the one the class was originally taught from."],
+  ["andor", "core.py:1877", ["refused", 302], ["equiv", 145, "certified; quotes rewritten, not byte-exact"], ["exact", 32, "released"], "win",
+   "buggy proposed or → and; fluidnet certified it. The fix is correct but buggy wrote 'cls' where click has \"cls\"."],
+  ["minmax", "core.py:2023", ["exact", 232], ["exact", 562, "a net, file named"], ["exact", 37, "released"], "tie",
+   "Both got it; the blind search was faster."],
+  ["literal", "utils.py:84", ["refused", 301], ["none", 19, "buggy read spaced test ids as 'harness'"], ["exact", 34, "released"], "lose",
+   "Four failing tests with spaces in their parameters. buggy read none of them and answered 'cannot be judged'; fluidnet obeyed. Both are fixed now."],
+  ["bareguard", "core.py:3396", ["exact", 52], ["exact", 3399, "buggy's three files all refused; the fallback found it"], ["exact", 73, "patched"], "lose",
+   "buggy named core.py, parser.py and types.py; the nets refused all three over 39 minutes — the released localisation never showed them line 3396. fluidnet then searched on its own, as it now does when buggy's files lead nowhere, and repaired it exactly: correct, but 57 minutes where the blind guard alone took 52 s."]
+];
+var FINAL = [["exact", 407, "buggy's fix, certified, unique at its line"], ["exact", 834, "buggy's fix, certified, unique at its line"], ["exact", 367, "buggy's fix, certified, unique at its line"], ["exact", 335, "B_sibling.py on buggy's lead"], ["ambig", 2125, "`pass` and `+=` both pass click's 2,240 tests \u2014 refused, both shown"], ["exact", 366, "A_corpus.py on buggy's lead"], ["ambig", 218, "buggy's `and` and a net's sibling rewrite both pass \u2014 refused, both shown"], ["exact", 373, "C_real.py on buggy's lead"], ["exact", 242, "buggy's fix, certified, unique at its line"], ["exact", 336, "A_corpus.py on buggy's lead"]];
+var AGENT = [["exact", 63, "55,985 tokens"], ["exact", 44, "49,726 tokens"], ["exact", 46, "48,008 tokens"], ["exact", 167, "52,659 tokens"], ["exact", 61, "50,276 tokens"], ["exact", 52, "51,050 tokens"], ["exact", 44, "46,972 tokens"], ["exact", 73, "51,828 tokens"], ["exact", 42, "48,486 tokens"], ["exact", 50, "51,441 tokens"]];
+var LABEL = {ambig:"refused · ambiguous", exact:"exact", refused:"refused", equiv:"correct, not byte-exact", pending:"running", none:"nothing tried", timeout:"stopped at limit"};
+function pill(r){ var s = r[1] == null ? "" : " · " + r[1].toLocaleString() + " s";
+  return '<span class="pill ' + r[0] + '">' + LABEL[r[0]] + s + '</span>' + (r[2] ? '<span class="t">' + r[2] + '</span>' : ""); }
+var body = document.getElementById("rows"), filter = "all", open = null;
+function render(){
+  body.innerHTML = "";
+  RUNS.forEach(function(r, i){
+    if (filter === "bgwin" && r[5] !== "win") return;
+    if (filter === "bglose" && r[5] !== "lose") return;
+    var tr = document.createElement("tr"); tr.tabIndex = 0;
+    tr.innerHTML = '<td><b>' + r[0] + '</b><span class="t">' + r[1] + '</span></td><td>' + pill(r[2]) + '</td><td>' + pill(r[3]) + '</td><td>' + pill(FINAL[i]) + '</td><td>' + pill(AGENT[i]) + '</td><td>' + pill(r[4]) + '</td>';
+    function toggle(){ open = open === i ? null : i; render(); }
+    tr.addEventListener("click", toggle); tr.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+    body.appendChild(tr);
+    if (open === i){ var d = document.createElement("tr"); d.className = "detail"; d.innerHTML = '<td colspan="6">' + r[6] + '</td>'; body.appendChild(d); }
+  });
+}
+document.querySelectorAll(".chips button").forEach(function(b){
+  b.addEventListener("click", function(){ filter = b.dataset.f;
+    document.querySelectorAll(".chips button").forEach(function(x){ x.setAttribute("aria-pressed", x === b); }); render(); });
+});
+render();
+})();
+</script>

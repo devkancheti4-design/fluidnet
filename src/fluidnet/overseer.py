@@ -438,7 +438,7 @@ def judge_outside_fix(root, rel: str, patched: str, nets: list[str], python: str
 def watch_with_buggy(root, nets: list[str], commit: bool = False, python: str | None = None,
                      jobs: int = 1, mutate_seconds: int = 240, top_files: int = 3, fallback: bool = True,
                      file_budget: int = 600, hive: bool = True, lead: dict | None = None,
-                     body=None, mode: str = "thrift", learned: str | None = None) -> dict:
+                     body=None, mode: str = "thrift", learned: str | None = None, asks: int = 2) -> dict:
     """buggy locates; fluidnet certifies buggy's proposals, then each net repairs with the file named.
     Falls back to the blind search only when buggy is absent or names no file."""
     import time
@@ -586,44 +586,77 @@ def watch_with_buggy(root, nets: list[str], commit: bool = False, python: str | 
         return r
 
     def ambiguous():
-        """Two different programs pass. The core cannot choose — so, with a body, it asks for ONE fact: a test
-        that tells them apart. The core writes the test, checks it separates the two (resolve), and ships the one
-        it passes, certified with the test included. The body's words never choose."""
-        if body is not None and len(ambiguous_pair) == 2 and ambiguous_file:
-            from . import body as B
-            from .resolve import resolve
-            rel = ambiguous_file[0]
-            r = ask_body("a test that tells the two fixes apart", B.pin_prompt(root, rel, ambiguous_pair, ["A", "B"]))
-            code = B.parse_code(r.text)
-            if code:
-                n = 0
-                while (Path(root) / "tests" / f"test_fluidnet_pin{n or ''}.py").exists():
-                    n += 1
-                test_rel = f"tests/test_fluidnet_pin{n or ''}.py"
-                (Path(root) / "tests").mkdir(exist_ok=True)
-                (Path(root) / test_rel).write_text(code, encoding="utf-8")
-                res = resolve(root, rel, ambiguous_pair, test_rel, python=python or sys.executable)
-                stages.append(("resolve with the body's test", res.seconds, f"{res.verdict}: {res.why}"))
-                if res.ok:
-                    win = ambiguous_pair[res.winner]
-                    if commit:
-                        (Path(root) / rel).write_text(win, encoding="utf-8")
-                        subprocess.run(["git", "add", "--", rel, test_rel], cwd=root, capture_output=True)
-                        subprocess.run(["git", "commit", "-q", "-m", f"fluidnet: repair {rel}, chosen by a new test "
-                                        f"({test_rel}) the core verified separates the two passing fixes", "--", rel,
-                                        test_rel], cwd=root, capture_output=True)
-                    else:
-                        (Path(root) / test_rel).unlink()
-                    import difflib
-                    original = (Path(root) / rel).read_text(encoding="utf-8") if not commit else ""
-                    outcomes.append(Outcome("resolved", "repaired", "".join(difflib.unified_diff(
-                        original.splitlines(True), win.splitlines(True), f"a/{rel}", f"b/{rel}", n=1)) if original else
-                        f"committed {rel} and {test_rel}", 0, win))
-                    return done("resolved by the core with the body's test")
+        """Two different programs pass. The core cannot choose — so, with a body, it asks the AI agent, used only as
+        an ORACLE, for one fact: a test, or NO-DIFFERENCE with a probe. The core MEASURES that fact (the test run
+        under each program twice; the probe run under each, twice, under coverage) and the EQUIV law rules on the
+        measurement: REFUSE, SHIP_A, SHIP_B, or ASK again — within a budget of `asks`. The oracle's words decide
+        nothing. Measured 2026-09-25 on click: a test separated `and` from `self.context_settings` (shipped), and a
+        correct NO-DIFFERENCE with no way to weigh it was refused — the case this law exists for."""
+        if body is None or len(ambiguous_pair) != 2 or not ambiguous_file:
+            r = done(None); r["status"] = "ambiguous"; r["candidates"] = list(ambiguous_pair)
+            return r
+        from . import body as B
+        from .equiv import equiv, situation, VERDICTS, SHIP_A, SHIP_B, REFUSE
+        from .resolve import measure_test, measure_probe
+        import difflib
+        rel = ambiguous_file[0]; A, Bc = ambiguous_pair
+        f = Path(root) / rel; original = f.read_text(encoding="utf-8")
+        same = _same_program(A, Bc)
+        smaller_a = _edit_size(original, A) <= _edit_size(original, Bc)
+        feedback, test_rel = "", None
+        for n in range(1, asks + 1):
+            last = n == asks
+            kind, e1, e2, stable, test_rel, note = 0, False, False, False, None, "no usable answer"
+            if not same:
+                r = ask_body(f"the oracle (ask {n} of {asks})", B.pin_prompt(root, rel, ambiguous_pair, ["A", "B"]) + feedback)
+                code, nd = B.parse_code(r.text), B.no_difference(r.text)
+                if nd and code:
+                    m = measure_probe(root, rel, ambiguous_pair, code, python=python or sys.executable)
+                    kind, e1, e2, stable = 2, m["covers"], m["equal"], m["stable"]
+                    note = (f"a probe: {'reached every differing line' if e1 else 'missed differing lines'}, "
+                            f"{'identical' if e2 else 'different'} output, {'stable' if stable else 'unstable'}"
+                            + (f" — {m['detail']}" if m["detail"] else ""))
+                elif code:
+                    k = 0
+                    while (Path(root) / "tests" / f"test_fluidnet_pin{k or ''}.py").exists():
+                        k += 1
+                    test_rel = f"tests/test_fluidnet_pin{k or ''}.py"
+                    (Path(root) / "tests").mkdir(exist_ok=True)
+                    (Path(root) / test_rel).write_text(code, encoding="utf-8")
+                    m = measure_test(root, rel, ambiguous_pair, test_rel, python=python or sys.executable)
+                    kind, (e1, e2), stable = 1, m["pass"], m["stable"]
+                    note = (f"a test: passes under A {e1}, under B {e2}, {'stable' if stable else 'flips on a re-run'}")
+            x = situation(same, kind, e1, e2, smaller_a, last, stable); v = equiv(x)
+            stages.append(("the EQUIV law", 0.0, f"x={x} · {note} · smaller edit {'A' if smaller_a else 'B'}"
+                                                 f"{' · last ask' if last else ''} -> {VERDICTS[v]}"))
+            if v in (SHIP_A, SHIP_B):
+                win = A if v == SHIP_A else Bc
+                if kind == 1:                   # the test becomes part of the suite: certify with it included
+                    c = certify(root, rel, win, python=python or sys.executable)
+                    stages.append(("certify with the oracle's test included", c.seconds, c.verdict))
+                    if not c.ok:
+                        (Path(root) / test_rel).unlink(missing_ok=True)
+                        break
+                keep = [rel] + ([test_rel] if kind == 1 else [])
+                if commit:
+                    f.write_text(win, encoding="utf-8")
+                    why = {0: "the same program written twice; the smaller edit", 1: f"a new test ({test_rel}) seen to separate the two",
+                           2: "a probe that reached every differing line printed identical output under both; the smaller edit"}[kind]
+                    subprocess.run(["git", "add", "--", *keep], cwd=root, capture_output=True)
+                    subprocess.run(["git", "commit", "-q", "-m", f"fluidnet: repair {rel} — the EQUIV law chose it: {why}",
+                                    "--", *keep], cwd=root, capture_output=True)
+                elif test_rel:
+                    (Path(root) / test_rel).unlink(missing_ok=True)
+                outcomes.append(Outcome("equiv", "repaired", "".join(difflib.unified_diff(
+                    original.splitlines(True), win.splitlines(True), f"a/{rel}", f"b/{rel}", n=1)), 0, win))
+                return done(f"the EQUIV law ({VERDICTS[v]}) on the oracle's " + {0: "nothing — one program",
+                            1: "test", 2: "probe"}[kind])
+            if test_rel:
                 (Path(root) / test_rel).unlink(missing_ok=True)
-            elif B.no_difference(r.text):
-                stages.append(("the body says no input tells them apart", 0.0,
-                               B.no_difference(r.text)[:140] + " — refused: the core has no equivalence lane yet"))
+            if v == REFUSE:
+                break
+            feedback = (f"\n\nYour previous answer was measured: {note}. Answer again — the engine only ships what it "
+                        f"can measure.")
         r = done(None); r["status"] = "ambiguous"; r["candidates"] = list(ambiguous_pair)
         return r
 

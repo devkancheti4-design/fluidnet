@@ -1,0 +1,43 @@
+You supply ONE test to a repair engine that decides everything itself. Do not choose in words.
+Two different fixes to src/click/_termui_impl.py both pass the project's entire existing test suite:
+
+--- candidate A
+--- a/src/click/_termui_impl.py
++++ b/src/click/_termui_impl.py
+@@ -573,13 +573,13 @@
+         # to ``_tempfilepager``, so this branch is not reachable on Windows
+         # today: it keeps the detection correct should that routing ever
+         # change.
+         cmd_name = cmd_name.casefold()
+ 
+     if color is None and cmd_name == "less":
+-        less_env = os.environ.get("LESS")
++        less_env = os.environ.get("LESS", "")
+         if _less_uses_raw_mode(less_env, cmd_params):
+             color = True
+         elif not less_env and not cmd_params:
+             env["LESS"] = "-R"
+             color = True
+ 
+
+--- candidate B
+--- a/src/click/_termui_impl.py
++++ b/src/click/_termui_impl.py
+@@ -574,12 +574,14 @@
+         # today: it keeps the detection correct should that routing ever
+         # change.
+         cmd_name = cmd_name.casefold()
+ 
+     if color is None and cmd_name == "less":
+         less_env = os.environ.get("LESS")
++        if less_env is None:
++            less_env = ""
+         if _less_uses_raw_mode(less_env, cmd_params):
+             color = True
+         elif not less_env and not cmd_params:
+             env["LESS"] = "-R"
+             color = True
+ 
+
+
+If some concrete input makes the code behave differently under them, reply with ONE complete pytest file in a single ```python block, whose test passes under the correct fix and fails under the other (import the package as the existing tests do). If no input can tell them apart, reply with the line NO-DIFFERENCE: <one sentence why> followed by ONE Python script in a single ```python block — a probe — that imports the package, runs the changed code over the inputs that matter (every branch where the two differ), and prints what it observes, deterministically. The engine runs your probe under each fix and compares; your words decide nothing.

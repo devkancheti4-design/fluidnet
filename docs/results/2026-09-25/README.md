@@ -68,6 +68,34 @@ The agent resolved both ambiguous bugs by reading the code. Nothing checked that
   the facts — a median ~450 tokens (estimated from request size); a real lean call awaits the Claude Code CLI on the
   measuring machine, which answered "Credit balance is too low".
 
+## Live: the AI agent as an oracle, fluidnet as the core
+
+fluidnet ran live (`watch --body … --mode thrift`); when two different fixes both passed the full suite it asked
+the agent — used only as an **oracle**, with no tools — for one fact, blocked until the answer came, measured it,
+and decided. The agent's answer reached fluidnet through a file bridge ([`harness/bridge.py`](harness/bridge.py)),
+because the Claude Code CLI on the measuring machine had no credits; every question and answer is in
+[`data/oracle/`](data/oracle), every run in [`data/live_oracle.jsonl`](data/live_oracle.jsonl).
+
+| bug | the oracle supplied | fluidnet's decision | result |
+|---|---|---|---|
+| `core.py:1877` | one test (8.9 s) | the test passes `and` only | **fixed** — click's behaviour (`'cls'` for `"cls"`), committed with the test |
+| `_textwrap.py:168` | two tests (11 s) | they pass `+=` and fail `pass` | **fixed, byte-exact**, committed with the tests |
+| `_termui_impl.py:579`, before the law | NO-DIFFERENCE (5.7 s) | no lane to weigh the claim | refused, file untouched |
+| `_termui_impl.py:579`, with the EQUIV law | NO-DIFFERENCE and a probe (67 s) | the probe reached every differing line, identical output, stable: x = 188 → SHIP_A, the smaller edit | **fixed, byte-exact** |
+
+0 wrong fixes. The EQUIV law ([`laws/equiv.c`](../../../laws/equiv.c), authored by search from
+[`docs/laws/EQUIVALENCE_LAW_PROMPT.md`](../../laws/EQUIVALENCE_LAW_PROMPT.md)) rules on eight measured bits and never
+on what the oracle said: every SHIP is backed by one program written twice, a stable test seen to separate the two,
+or a stable probe that reached every differing line and printed identical output.
+
+**Tokens.** An empty call to the same agent runtime ("reply OK", no tools) cost 43,763 tokens in 1.8 s — its fixed
+overhead. The oracle answers were 45,290 / 45,648 / 44,858 / 51,938 reported, so the data itself was ~1,100–8,200
+tokens each. By the same subtraction the ten pointers of the speed mode carried ~44,000 tokens of data in all, not
+481,390, and the token-saving mode's two asks ~10,000, not 97,753.
+
+Disclosure: for `_textwrap.py:168` the relay added one line to the oracle's prompt describing `click.wrap_text`;
+the other questions were fluidnet's own, verbatim, with "import click".
+
 ## Teach once — the novel becomes known
 
 | rule | written by | held-out click bugs of that shape |
@@ -111,7 +139,7 @@ of the ten — a limit of the list, not proof they are new.
 ## What is not claimed
 
 - A lean agent call's real token cost (estimated from request size only).
-- An equivalence lane: two programs that behave identically still end in a refusal.
+- An equivalence lane beyond one live case: the EQUIV law shipped `_termui_impl.py:579` on a measured probe; whether probe evidence is enough in general is to be measured on known-different pairs (none may ship).
 - For failures that are output mismatches, a no-tools pointer gets no source frames; the core's own coverage lines
   should be added to the request.
 - Harder bugs: four real multi-line bugs are recreated and not run; nothing beyond one-token and one multi-line bug

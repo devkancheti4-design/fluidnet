@@ -1,0 +1,1 @@
+{"result": "NO-DIFFERENCE: Values in `os.environ` are always strings, never `None`, so `os.environ.get(\"LESS\", \"\")` (A) and `get(\"LESS\")` followed by replacing `None` with `\"\"` (B) give exactly the same `less_env` for every real environment.", "usage": {"input_tokens": 44775, "output_tokens": 0}, "oracle_seconds": 4.8, "tool_uses": 0}

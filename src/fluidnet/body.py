@@ -110,8 +110,11 @@ def pin_prompt(root, rel: str, candidates: list[str], names: list[str]) -> str:
             f"Two different fixes to {rel} both pass the project's entire existing test suite:\n\n{diffs}\n\n"
             "If some concrete input makes the code behave differently under them, reply with ONE complete pytest file "
             "in a single ```python block, whose test passes under the correct fix and fails under the other (import "
-            "the package as the existing tests do). If no input can tell them apart, reply only: "
-            "NO-DIFFERENCE: <one sentence why>")
+            "the package as the existing tests do). If no input can tell them apart, reply with the line "
+            "NO-DIFFERENCE: <one sentence why> followed by ONE Python script in a single ```python block — a probe — "
+            "that imports the package, runs the changed code over the inputs that matter (every branch where the two "
+            "differ), and prints what it observes, deterministically. The engine runs your probe under each fix and "
+            "compares; your words decide nothing.")
 
 
 def vocabulary_prompt(root, python: str, lead: dict) -> str:

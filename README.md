@@ -95,9 +95,14 @@ fluidnet watch . --net rules.py --body "claude -p --output-format json"         
 fluidnet watch . --net rules.py --lead src/pkg/x.py:12                                  # a lead from anyone, no body
 ```
 
+When two fixes both pass, the agent answers as an **oracle** — a test, or NO-DIFFERENCE with a probe — and the
+**EQUIV law** ([`laws/equiv.c`](laws/equiv.c), eight measured bits → REFUSE / SHIP_A / SHIP_B / ASK) rules on what
+fluidnet *measured* of that answer: the test run under each fix, the probe run under each with coverage. Live on
+click: three ambiguous bugs, three fixed (two byte-exact), 0 wrong, the oracle never writing a fix.
+
 The body is any command that reads the request on stdin and prints the reply. Token counts above are what an agent
-runtime reported (~47,000 per call, mostly its own overhead); a request itself carries a median ~450 tokens of
-facts. [All numbers, data and harness →](docs/results/2026-09-25)
+runtime reported; an empty call to that runtime costs ~43,800 tokens on its own, so the data in an oracle's answer
+was ~1,100–8,200 tokens. [All numbers, data and harness →](docs/results/2026-09-25)
 
 ### The locator — `fluidnet locate`
 When the suite goes red and you don't know where. Three questions, answered with evidence: **where**
@@ -202,7 +207,7 @@ Every one of these happened while building it.
 ## Test
 
 ```bash
-pytest -q        # 95 tests, each a real pytest project in a temp dir, nothing mocked
+pytest -q        # 108 tests, each a real pytest project in a temp dir, nothing mocked
 ```
 
 ## What is measured
@@ -218,6 +223,7 @@ pytest -q        # 95 tests, each a real pytest project in a temp dir, nothing m
 | ten real click bugs, fluidnet with buggy | released build 4/10 byte-exact; final build 8/10 byte-exact, 2 refused as ambiguous, 0 wrong, median 367 s, no model |
 | the same ten, fluidnet + an agent as the suit | speed 9/10 byte-exact, median 178 s · token-saving 10/10 correct with 2 agent calls · 0 wrong in both |
 | a new shape taught once | by hand: 11/11 held-out click bugs byte-exact · by an agent from one example: 4/4 in its reach, 0 wrong, reach 3 of 11 |
+| the agent as a live oracle | 3 ambiguous click bugs fixed (2 byte-exact), 0 wrong; one of them by the EQUIV law on a measured probe |
 | a real multi-line bug, rule by an agent | click f58ca3e814: the core shipped a fix in 30 s that passes the maintainer's regression tests (not byte-identical) |
 | real history, knowledge only | a generic vocabulary reaches ~2% of 565 real fixes, 75% of the single-token mechanical ones |
 

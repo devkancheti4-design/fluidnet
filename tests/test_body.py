@@ -53,9 +53,9 @@ def test_ambiguity_is_resolved_by_a_test_the_body_supplies_and_the_core_verifies
     monkeypatch.setattr(overseer, "buggy_leads", lambda *a, **k: pytest.fail("the lead was given; buggy must not run"))
     body = _body(tmp_path)
     r = watch_with_buggy(root, ["augassign.py", "deletion.py"], python=sys.executable, lead={"pkg/mod.py": [3]}, body=body)
-    assert r["winner"] == "resolved by the core with the body's test", r["stages"]
+    assert r["winner"] == "the EQUIV law (SHIP_A) on the oracle's test", r["stages"]
     assert r["outcomes"][-1].patched.rstrip() == RIGHT.rstrip()                 # the core chose `+=`, not `pass`
-    assert any(n.startswith("body: a test") and "1,280 tokens" in w for n, _, w in r["stages"])
+    assert any(n.startswith("body: the oracle") and "1,280 tokens" in w for n, _, w in r["stages"])
     assert (root / "pkg/mod.py").read_bytes() == before and not (root / "tests/test_fluidnet_pin.py").exists()
 
 
@@ -65,8 +65,10 @@ def test_a_body_that_finds_no_difference_leaves_it_refused(repo_factory, tmp_pat
     monkeypatch.setattr(overseer, "buggy_leads", lambda *a, **k: pytest.fail("buggy must not run"))
     r = watch_with_buggy(root, ["augassign.py", "deletion.py"], python=sys.executable, lead={"pkg/mod.py": [3]},
                          body=_body(tmp_path, pin="NO-DIFFERENCE: they agree on every input"))
+    # a claim with no probe is no evidence: ask again, and with the budget spent, refuse (Q1, Q4, Q5)
     assert r["status"] == "ambiguous" and r["winner"] is None
-    assert any("no equivalence lane" in w for _, _, w in r["stages"])
+    law = [w for n, _, w in r["stages"] if n == "the EQUIV law"]
+    assert [w.rsplit("-> ", 1)[1] for w in law] == ["ASK", "REFUSE"]
 
 
 def test_speed_mode_the_body_points_first_and_buggy_never_runs(repo_factory, tmp_path, monkeypatch):
@@ -99,3 +101,52 @@ def test_vocabulary_from_the_body_becomes_a_learned_net_that_fixes_it(repo_facto
     assert len(saved) == 1 and saved[0].read_text() == "# a rule\n"
     assert r["winner"] == str(saved[0])
     assert any(n.startswith("body: vocabulary") for n, _, _ in r["stages"])
+
+
+EQUIV_A = BUG.replace("line -= pad", "line += pad")
+EQUIV_B = BUG.replace("line -= pad", "line = line + pad")          # a different tree, the same behaviour
+PROBE = ("NO-DIFFERENCE: for strings, x += y and x = x + y are the same\n```python\n"
+         "from pkg.mod import first_line\nfor t, p in [('a', ''), ('a', '  '), ('', '\\t')]:\n"
+         "    print(repr(first_line(t, p)))\n```")
+
+
+def _ambiguous_pair(monkeypatch, a, b):
+    _core(monkeypatch, {"one.py": a, "two.py": b})
+    monkeypatch.setattr(overseer, "buggy_leads", lambda *a, **k: pytest.fail("the lead was given; buggy must not run"))
+
+
+def test_a_measured_equivalence_ships_the_smaller_edit(repo_factory, tmp_path, monkeypatch):
+    """Q3: the probe reached the differing line under both, printed identical output, twice — ship the smaller."""
+    root = repo_factory(BUG, TESTS)
+    _ambiguous_pair(monkeypatch, EQUIV_A, EQUIV_B)
+    r = watch_with_buggy(root, ["one.py", "two.py"], python=sys.executable, lead={"pkg/mod.py": [3]},
+                         body=_body(tmp_path, pin=PROBE))
+    assert r["winner"] == "the EQUIV law (SHIP_A) on the oracle's probe", r["stages"]
+    assert r["outcomes"][-1].patched.rstrip() == EQUIV_A.rstrip()             # `+=` is the smaller edit
+    law = [w for n, _, w in r["stages"] if n == "the EQUIV law"]
+    assert len(law) == 1 and "reached every differing line, identical output, stable" in law[0]
+
+
+def test_a_false_equivalence_claim_is_refuted_by_its_own_probe(repo_factory, tmp_path, monkeypatch):
+    """`pass` and `+=` are NOT the same; the oracle says they are. Its probe prints different output under the
+    two, so the claim is no evidence: ask again, then refuse — nothing ships on the oracle's word."""
+    root = repo_factory(BUG, TESTS)
+    before = (root / "pkg/mod.py").read_bytes()
+    _ambiguous_pair(monkeypatch, EQUIV_A, CANCEL)
+    r = watch_with_buggy(root, ["one.py", "two.py"], python=sys.executable, lead={"pkg/mod.py": [3]},
+                         body=_body(tmp_path, pin=PROBE), commit=True)
+    assert r["status"] == "ambiguous" and r["winner"] is None
+    law = [w for n, _, w in r["stages"] if n == "the EQUIV law"]
+    assert [w.rsplit("-> ", 1)[1] for w in law] == ["ASK", "REFUSE"] and "different output" in law[0]
+    assert (root / "pkg/mod.py").read_bytes() == before
+
+
+def test_a_test_that_passes_both_separates_nothing(repo_factory, tmp_path, monkeypatch):
+    root = repo_factory(BUG, TESTS)
+    _ambiguous_pair(monkeypatch, EQUIV_A, CANCEL)
+    both = "from pkg.mod import first_line\n\ndef test_empty_pad():\n    assert first_line('a', '') == 'a'\n"
+    r = watch_with_buggy(root, ["one.py", "two.py"], python=sys.executable, lead={"pkg/mod.py": [3]},
+                         body=_body(tmp_path, pin=both))
+    law = [w for n, _, w in r["stages"] if n == "the EQUIV law"]
+    assert [w.rsplit("-> ", 1)[1] for w in law] == ["ASK", "REFUSE"] and r["winner"] is None
+    assert not list((root / "tests").glob("test_fluidnet_pin*.py"))          # the useless test is not left behind

@@ -1,0 +1,43 @@
+You supply ONE test to a repair engine that decides everything itself. Do not choose in words.
+Two different fixes to src/click/core.py both pass the project's entire existing test suite:
+
+--- candidate A
+--- a/src/click/core.py
++++ b/src/click/core.py
+@@ -1871,13 +1871,13 @@
+             assert len(args) == 1 and not kwargs, (
+                 "Use 'command(**kwargs)(callable)' to provide arguments."
+             )
+             (func,) = args
+             args = ()
+ 
+-        if self.command_class or kwargs.get("cls") is None:
++        if self.command_class and kwargs.get('cls') is None:
+             kwargs["cls"] = self.command_class
+ 
+         def decorator(f: t.Callable[..., t.Any]) -> Command:
+             cmd: Command = command(*args, **kwargs)(f)
+             self.add_command(cmd)
+             return cmd
+
+--- candidate B
+--- a/src/click/core.py
++++ b/src/click/core.py
+@@ -1871,13 +1871,13 @@
+             assert len(args) == 1 and not kwargs, (
+                 "Use 'command(**kwargs)(callable)' to provide arguments."
+             )
+             (func,) = args
+             args = ()
+ 
+-        if self.command_class or kwargs.get("cls") is None:
++        if self.context_settings or kwargs.get("cls") is None:
+             kwargs["cls"] = self.command_class
+ 
+         def decorator(f: t.Callable[..., t.Any]) -> Command:
+             cmd: Command = command(*args, **kwargs)(f)
+             self.add_command(cmd)
+             return cmd
+
+
+If some concrete input makes the code behave differently under them, reply with ONE complete pytest file in a single ```python block, whose test passes under the correct fix and fails under the other (import the package as the existing tests do). If no input can tell them apart, reply only: NO-DIFFERENCE: <one sentence why>

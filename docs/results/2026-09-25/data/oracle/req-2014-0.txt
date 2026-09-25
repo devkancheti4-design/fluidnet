@@ -1,0 +1,43 @@
+You supply ONE test to a repair engine that decides everything itself. Do not choose in words.
+Two different fixes to src/click/_textwrap.py both pass the project's entire existing test suite:
+
+--- candidate A
+--- a/src/click/_textwrap.py
++++ b/src/click/_textwrap.py
+@@ -162,13 +162,13 @@
+         return lines
+ 
+     @contextmanager
+     def extra_indent(self, indent: str) -> cabc.Iterator[None]:
+         old_initial_indent = self.initial_indent
+         old_subsequent_indent = self.subsequent_indent
+-        self.initial_indent -= indent
++        pass
+         self.subsequent_indent += indent
+ 
+         try:
+             yield
+         finally:
+             self.initial_indent = old_initial_indent
+
+--- candidate B
+--- a/src/click/_textwrap.py
++++ b/src/click/_textwrap.py
+@@ -162,13 +162,13 @@
+         return lines
+ 
+     @contextmanager
+     def extra_indent(self, indent: str) -> cabc.Iterator[None]:
+         old_initial_indent = self.initial_indent
+         old_subsequent_indent = self.subsequent_indent
+-        self.initial_indent -= indent
++        self.initial_indent += indent
+         self.subsequent_indent += indent
+ 
+         try:
+             yield
+         finally:
+             self.initial_indent = old_initial_indent
+
+
+If some concrete input makes the code behave differently under them, reply with ONE complete pytest file in a single ```python block, whose test passes under the correct fix and fails under the other (import the package as the existing tests do). If no input can tell them apart, reply only: NO-DIFFERENCE: <one sentence why>
